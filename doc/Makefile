@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.1  2003/10/14 14:15:52  dtynan
+# Added a placeholder Makefile.
+#
 # Revision 1.2  2003/10/14 14:10:56  dtynan
 # Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
 # reduce blank lines in the output.
@@ -41,6 +44,11 @@
 # Major revision of the DBOW code to use M4 as a back-end instead of
 # hard-coding the output.
 #
+PREFIX?=/usr/local
+
 all:
+
 install:
+	install -C -m 444 dbow.1 $(PREFIX)/man/man1
+
 clean:
