@@ -1,16 +1,13 @@
 Project: dbow
-Version: 0.4
-Release-Focus: Minor feature enhancements
+Version: 0.5
+Release-Focus: Minor bug fix.
 Hide: N
 Home-Page-URL: http://dbow.sf.net/
-Gzipped-Tar-URL: http://prdownloads.sourceforge.net/dbow/dbow-0.4.tar.gz
+Gzipped-Tar-URL: http://prdownloads.sourceforge.net/dbow/dbow-0.5.tar.gz
 
-This release of DBOW brings the C interface to a stable (BETA)
-level, adds some new functionality and fixes a few bugs in the
-back-end.  Added a 'db_findXXXfirst()' function for searching the
-entire table.  Added a 'db_runXXXquery()' function which will run
-an SQL statement (without parsing any arguments) and return the
-first match.  Fixed a bug where the include() m4 statement was being
-emitted more than once.  Put the 'EMIT' code at the bottom of the
-output file.
+This is a minor update of the DBOW code to fix some bugs found after
+0.4 was released.  The biggest change is the addition of nested
+queries so that dbow_query can be called recursively without affecting
+the "upper" query.  Also added the stubs for supporting the 'function'
+block which allows for a more granular approach to defining functions.
 

@@ -17,6 +17,28 @@ It will be extended to support other languages and database constructs
 as required. It currently compiles/runs on FreeBSD/Linux.  It doesn't
 require any other libraries or elements except YACC/Bison.
 
+2004-07-05  dtynan  <dtynan@kalopa.com>
+
+	* This is a minor update of the DBOW code to fix some bugs
+	  found after 0.4 was released.  The biggest change is the
+	  addition of nested queries so that dbow_query can be
+	  called recursively without affecting the "upper" query.
+	  Also added the stubs for supporting the 'function' block
+	  which allows for a more granular approach to defining
+	  functions.
+
+2004-04-30  dtynan  <dtynan@kalopa.com>
+
+	* This release of DBOW brings the C interface to a stable
+	  (BETA) level, adds some new functionality and fixes a few
+	  bugs in the back-end.  Added a 'db_findXXXfirst()' function
+	  for searching the entire table.  Added a 'db_runXXXquery()'
+	  function which will run an SQL statement (without parsing
+	  any arguments) and return the first match.  Fixed a bug
+	  where the include() m4 statement was being emitted more
+	  than once.  Put the 'EMIT' code at the bottom of the
+	  output file.
+
 2003-08-07  dtynan  <dtynan@kalopa.com>
 
 	* This version has support for C and SQL with the basics
