@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.5  2004/07/05 11:20:33  dtynan
+ * Added support for nested queries.
+ *
  * Revision 1.4  2004/01/26 23:45:11  dtynan
  * Removed debug printf.
  *
@@ -118,13 +121,13 @@ dbow_query(dbow_conn *c, char *query, ...)
 	va_list ap;
 
 	va_start(ap, query);
-	state = 0;
-	while ((ch = *query++) != '\0') {
+	state = n = 0;
+	while (n >= 0 && (ch = *query++) != '\0') {
 		if (state == 0) {
 			if (ch == '$')
 				state = 1;
 			else
-				qbputc(c, ch);
+				n = qbputc(c, ch);
 			continue;
 		}
 		if (ch < 'a' || ch > 'z') {
