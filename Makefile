@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.6  2003/07/30 15:19:57  dtynan
+# Fixed an issue with clean installs
+#
 # Revision 1.5  2003/07/29 15:22:48  dtynan
 # Revised copyright prior to first public release.
 #
@@ -48,72 +51,13 @@
 # Revision 1.1  2003/07/28 21:31:54  dtynan
 # First pass at an intelligent front-end for databases.
 #
-.SUFFIXES:	.d .sql
+DIRS=	lib src m4 doc example
 
-MYSQL_INC=/usr/local/include/mysql
-MYSQL_LIB=/usr/local/lib/mysql
+all:
+	@for d in $(DIRS); do $(MAKE) -C $$d all; done
 
-PREFIX=	/usr/local
-DBOWDIR=$(PREFIX)/share/dbow
-
-CFLAGS=	-O -I$(MYSQL_INC) -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\"
-
-XSRCS=	main.c table.c type.c parse.y \
-	genc.c gencpp.c genperl.c genphp.c gensql.c
-XOBJS=	main.o table.o type.o parse.o \
-	genc.o gencpp.o genperl.o genphp.o gensql.o
-LSRCS=	dbase.c dballoc.c dbquery.c dbinsid.c \
-	dbifchar.c dbifdate.c dbifdchar.c \
-	dbifdouble.c dbiffloat.c dbifint.c dbiflong.c
-LOBJS=	dbase.o dballoc.o dbquery.o dbinsid.o \
-	dbifchar.o dbifdate.o dbifdchar.o \
-	dbifdouble.o dbiffloat.o dbifint.o dbiflong.o
-DBOWLIB=libdbow.a
-
-PEFILES= c.prolog mysql.prolog perl.prolog php.prolog php.epilog
-
-all:	dbow dbow.h $(DBOWLIB)
-
-install: dbow dbow.h $(DBOWLIB) $(PEFILES)
-	install -d $(DBOWDIR)
-	install -C -m 555 dbow $(PREFIX)/bin
-	install -C -m 444 $(PEFILES) $(DBOWDIR)
-	install -C -m 444 dbow.h $(PREFIX)/include
-	install -C -m 444 $(DBOWLIB) $(PREFIX)/lib
+install:
+	@for d in $(DIRS); do $(MAKE) -C $$d install; done
 
 clean:
-	rm -f dbow $(DBOWLIB) $(XOBJS) $(LOBJS) a.out errs core
-	rm -f sample.c sample.o sample
-
-tags:	$(XSRCS) $(LSRCS)
-	ctags $(XSRCS) $(LSRCS)
-
-dbow:	$(XOBJS)
-	$(CC) -o dbow $(XOBJS)
-
-$(DBOWLIB): $(LOBJS)
-	$(AR) ru $(DBOWLIB) $?
-
-$(LOBJS): dbow.h
-
-$(XOBJS): dbowint.h
-
-sample: sample.o
-	$(CC) -o sample -L. -L$(MYSQL_LIB) sample.o -ldbow -lmysqlclient
-
-sample.o: sample.c
-	$(CC) -O -I$(PREFIX)/include -I$(MYSQL_INC) -c sample.c
-
-sample.c: sample.d dbow
-	./dbow -t c -N sample.d
-
-.d.sql:	
-	./dbow -t mysql -o $@ $<
-
-.d.c:	
-	./dbow -t C -h $*.h -o $@ $<
-
-.d.o:	
-	./dbow -t C -h $*.h -o $*.c $<
-	$(CC) $(CFLAGS) -c $*.c
-	rm -f $*.c
+	@for d in $(DIRS); do $(MAKE) -C $$d clean; done
