@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.8  2003/11/17 13:15:15  dtynan
+# Various changes to fix errors in the back-end code.
+#
 # Revision 1.7  2003/10/14 13:15:56  dtynan
 # Upgraded to new M4 format.
 #
@@ -54,7 +57,7 @@
 # Revision 1.1  2003/07/28 21:31:54  dtynan
 # First pass at an intelligent front-end for databases.
 #
-DIRS=	lib src m4 doc example
+DIRS=	lib src m4 doc
 PREFIX?=/usr/local
 
 all:

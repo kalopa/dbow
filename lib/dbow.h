@@ -33,6 +33,11 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.4  2004/06/25 14:57:23  dtynan
+ * Fixed a bug in the C template where forloops weren't working properly.
+ * Added a RELEASE file, first pass at a man-page, and the basic hooks
+ * for dealing with th %function block.
+ *
  * Revision 1.3  2004/01/26 23:43:21  dtynan
  * Extensive changes to fix some M4 issues and some library issues.
  * Removed many of the functions which were used to parse data types
@@ -68,8 +73,8 @@ typedef	struct	_dbow_conn	{
 dbow_conn	*dbow_init(char *, char *, char *, char *);
 void		dbow_close(dbow_conn *);
 int		dbow_query(dbow_conn *, char *, ...);
-char		**dbow_fetch_row(dbow_conn *c);
-void		dbow_free_result(dbow_conn *c);
+char		**dbow_fetch_row(void *);
+void		dbow_free_result(void *);
 int		dbow_insertid(dbow_conn *);
 void		dbow_parsedate(dbow_conn *, int *, char *);
 #endif /* !_DBOW_H_ */

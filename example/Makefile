@@ -33,6 +33,18 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.6  2004/04/30 11:48:29  dtynan
+# Lots of changes for minor bug fixes, added functionality and the like.
+# Notably the following:
+#     o	Added a 'db_findXXXfirst()' function for searching the entired
+# 	table.
+#     o	Added a 'db_runXXXquery()' function which will run an SQL
+# 	statement (without parsing any arguments) and return the
+# 	first match.
+#     o	Fixed a bug where the include() m4 statement was being used
+# 	more than once.
+#     o	Put the 'EMIT' code at the bottom of the output file.
+#
 # Revision 1.5  2004/01/28 13:53:57  dtynan
 # Minor changes prior to 0.3 release.
 #
@@ -73,13 +85,8 @@ sample: sample.o
 .d.sql:	
 	../src/dbow -t mysql -o $@ $<
 
-.d.c:	
+.d.c:
 	../src/dbow -N -t C -o $@ $<
-
-.d.o:	
-	../src/dbow -N -t C -o $*.c $<
-	$(CC) $(CFLAGS) -c $*.c
-	rm -f $*.c
 
 .d.m4:
 	../src/dbow -m -t C -o $*.m4 $<

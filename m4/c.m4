@@ -34,6 +34,11 @@ dnl
 dnl ABSTRACT
 dnl
 dnl $Log$
+dnl Revision 1.10  2004/06/25 14:57:23  dtynan
+dnl Fixed a bug in the C template where forloops weren't working properly.
+dnl Added a RELEASE file, first pass at a man-page, and the basic hooks
+dnl for dealing with th %function block.
+dnl
 dnl Revision 1.9  2004/05/18 11:18:48  dtynan
 dnl Deprecated the use of %proto and %code statements.  Also added new
 dnl keywords which will immediately emit the following block either to
@@ -284,6 +289,7 @@ define(STRUCT_BODY,`
  * Structure definition for SQL table "$1".
  */
 struct db_$1 {
+	void	*dbres;
 forloop(z,0,STR_$1_NELEM0,`	concat(STYPE($1,z),STRNAME($1,z));
 ')};')
 
@@ -312,6 +318,8 @@ db_$1alloc()
 void
 db_$1free(struct db_$1 *p)
 {
+	if (p->dbres != NULL)
+		dbow_free_result(p->dbres);
 forloop(z,0,STR_$1_NELEM0,`FTYPE($1,z)')	free((char *)p);
 }
 
@@ -334,9 +342,12 @@ db_find$1next(dbow_conn *c, struct db_$1 *p)
 {
 	char **row;
 
-	if (p == NULL && (p = db_$1alloc()) == NULL)
-		return(NULL);
-	if ((row = dbow_fetch_row(c)) == NULL) {
+	if (p == NULL) {
+		if ((p = db_$1alloc()) == NULL)
+			return(NULL);
+		p->dbres = c->dbres;
+	}
+	if ((row = dbow_fetch_row(p->dbres)) == NULL) {
 		db_$1free(p);
 		return(NULL);
 	}

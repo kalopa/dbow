@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.4  2004/01/26 23:45:11  dtynan
+ * Removed debug printf.
+ *
  * Revision 1.3  2004/01/26 23:43:21  dtynan
  * Extensive changes to fix some M4 issues and some library issues.
  * Removed many of the functions which were used to parse data types
@@ -254,11 +257,13 @@ dbow_query(dbow_conn *c, char *query, ...)
  *
  */
 char **
-dbow_fetch_row(dbow_conn *c)
+dbow_fetch_row(void *vp)
 {
 #ifdef DBOW_MYSQL
-	if (c != NULL && c->dbres != NULL)
-		return((char **)mysql_fetch_row((MYSQL_RES *)c->dbres));
+	MYSQL_RES *dbres = (MYSQL_RES *)vp;
+
+	if (dbres != NULL)
+		return((char **)mysql_fetch_row(dbres));
 #endif
 	return(NULL);
 }
@@ -267,10 +272,12 @@ dbow_fetch_row(dbow_conn *c)
  *
  */
 void
-dbow_free_result(dbow_conn *c)
+dbow_free_result(void *vp)
 {
 #ifdef DBOW_MYSQL
-	if (c != NULL && c->dbres != NULL)
-		mysql_free_result((MYSQL_RES *)c->dbres);
+	MYSQL_RES *dbres = (MYSQL_RES *)vp;
+
+	if (dbres != NULL)
+		mysql_free_result(dbres);
 #endif
 }
