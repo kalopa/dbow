@@ -36,6 +36,11 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.6  2004/06/25 14:57:23  dtynan
+ * Fixed a bug in the C template where forloops weren't working properly.
+ * Added a RELEASE file, first pass at a man-page, and the basic hooks
+ * for dealing with th %function block.
+ *
  * Revision 1.5  2004/05/18 11:18:48  dtynan
  * Deprecated the use of %proto and %code statements.  Also added new
  * keywords which will immediately emit the following block either to
@@ -106,7 +111,7 @@ FILE		*fp;
 
 %term	PCENT ERROR
 %term	KW_ARG KW_CODE KW_DELETE KW_DUMP KW_EMIT KW_FUNCTION KW_INSERT
-%term	KW_NAME KW_PROTO KW_QUERY KW_SEARCH KW_TABLE KW_TYPE KW_UPDATE
+%term	KW_FNAME KW_PROTO KW_QUERY KW_SEARCH KW_TABLE KW_TYPE KW_UPDATE
 
 %term	KW_AUTOINCR KW_BIGINT KW_BLOB KW_CHAR KW_DECIMAL KW_DATE KW_DATETIME
 %term	KW_DOUBLE KW_ENUM KW_FLOAT KW_INT KW_KEY KW_LONGBLOB KW_LONGTEXT
@@ -330,9 +335,9 @@ func_def:	  KW_TABLE otname
 		{
 			printf("TYPE-UPDATE\n");
 		}
-		| KW_NAME ident
+		| KW_FNAME ident
 		{
-			printf("NAME:[%s]\n", $2);
+			printf("FNAME:[%s]\n", $2);
 		}
 		| KW_QUERY string
 		{
@@ -642,7 +647,7 @@ struct	keyword	{
 	{"mediumint",		KW_MEDINT},
 	{"mediumtext",		KW_MEDTEXT},
 	{"national",		KW_NATIONAL},
-	{"name",		KW_NAME},
+	{"fname",		KW_FNAME},
 	{"not",			KW_NOT},
 	{"null",		KW_NULL},
 	{"numeric",		KW_NUMERIC},
