@@ -1,7 +1,9 @@
+#ident "$Id$"
+
 /*
  * $Id$
  *
- * Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
+ * Copyright (c) 2004, Kalopa Media Limited.  All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
@@ -33,43 +35,97 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.3  2004/01/26 23:43:21  dtynan
- * Extensive changes to fix some M4 issues and some library issues.
- * Removed many of the functions which were used to parse data types
- * and made them inline instead.  Improved the M4 generator by adding
- * for loops.
- *
- * Revision 1.2  2003/11/17 13:15:19  dtynan
- * Various changes to fix errors in the back-end code.
- *
- * Revision 1.1  2003/10/14 13:00:23  dtynan
- * Major revision of the DBOW code to use M4 as a back-end instead of
- * hard-coding the output.
  */
 
-#ifndef	_DBOW_H_
-#define	_DBOW_H_
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
-#define DBOW_INSERT	0
-#define DBOW_DELETE	1
-#define DBOW_SEARCH	2
-#define DBOW_UPDATE	3
-#define DBOW_DUMP	4
-#define DBOW_OTHER	5
+#include "dbow.h"
+#include "dbowint.h"
 
-typedef	struct	_dbow_conn	{
-	void		*dbconn;
-	void		*dbres;
-	int		qboff;
-	int		qbsize;
-	char		*qbuff;
-} dbow_conn;
+struct	func	*fhead, *ftail;
 
-dbow_conn	*dbow_init(char *, char *, char *, char *);
-void		dbow_close(dbow_conn *);
-int		dbow_query(dbow_conn *, char *, ...);
-char		**dbow_fetch_row(dbow_conn *c);
-void		dbow_free_result(dbow_conn *c);
-int		dbow_insertid(dbow_conn *);
-void		dbow_parsedate(dbow_conn *, int *, char *);
-#endif /* !_DBOW_H_ */
+/*
+ *
+ */
+struct func *
+newfunction(char *name, int flags)
+{
+	struct func *fp;
+
+	if ((fp = (struct func *)malloc(sizeof(struct func))) == NULL) {
+		fprintf(stderr, "dbow: out of memory.\n");
+		exit(1);
+	}
+	fp->next = NULL;
+	fp->type = DBOW_OTHER;
+	fp->name = strdup(name);
+	fp->query = NULL;
+	fp->ahead = fp->atail = NULL;
+	fp->flags = 0;
+	if (fhead == NULL)
+		fhead = fp;
+	else
+		ftail->next = fp;
+	ftail = fp;
+	return(fp);
+}
+
+/*
+ *
+ */
+struct func *
+findfunction(char *name)
+{
+	struct func *fp;
+
+	for (fp = fhead; fp != NULL; fp = fp->next)
+		if (strcmp(name, fp->name) == 0)
+			return(fp);
+	return(NULL);
+}
+
+	struct	arg	*next;
+	int		argno;
+	struct	column	*cname;
+
+/*
+ *
+ */
+struct arg *
+newarg(struct func *fp, int argno, struct column *cp)
+{
+	struct arg *ap;
+
+	if ((ap = (struct arg *)malloc(sizeof(struct arg))) == NULL) {
+		fprintf(stderr, "dbow: out of memory.\n");
+		exit(1);
+	}
+	ap->next = NULL;
+	ap->argno = argno;
+	ap->cname = cp;
+	if (fp != NULL) {
+		if (fp->ahead == NULL)
+			fp->ahead = ap;
+		else
+			fp->atail->next = ap;
+		fp->atail = ap;
+	}
+	return(ap);
+}
+
+/*
+ *
+ */
+struct arg *
+findarg(struct func *fp, int argno)
+{
+	struct arg *ap;
+
+	for (ap = fp->ahead; ap != NULL; ap = ap->next)
+		if (ap->argno == argno)
+			return(ap);
+	return(NULL);
+}

@@ -33,6 +33,11 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.5  2004/05/18 11:18:48  dtynan
+ * Deprecated the use of %proto and %code statements.  Also added new
+ * keywords which will immediately emit the following block either to
+ * the include file or to the code file respectively.
+ *
  * Revision 1.4  2004/04/30 12:12:24  dtynan
  * Lots of changes for minor bug fixes, added functionality and the like.
  * Notably the following:
@@ -57,7 +62,6 @@
  * Revision 1.1  2003/10/14 13:00:26  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
- *
  */
 
 #define DBASE_MYSQL	0
@@ -131,6 +135,28 @@ struct	table	{
 #define FLAG_DUMP	0x0001
 
 /*
+ * Structure definition for each argument to a function.
+ */
+struct	arg	{
+	struct	arg	*next;
+	int		argno;
+	struct	column	*cname;
+};
+
+/*
+ * Structure definition for each generated function.
+ */
+struct	func	{
+	struct	func	*next;
+	int		type;
+	char		*name;
+	char		*query;
+	struct	arg	*ahead;
+	struct	arg	*atail;
+	int		flags;
+};
+
+/*
  * Structure for each code generation handler.
  */
 struct	type	{
@@ -169,6 +195,10 @@ struct	table	*findtable(char *name);
 struct	table	*getnexttable(struct table *);
 struct	column	*newcolumn(struct table *, char *, int, int, int, int);
 struct	column	*findcolumn(struct table *, char *);
+struct	func	*newfunction(char *, int);
+struct	func	*findfunction(char *);
+struct	arg	*newarg(struct func *, int, struct column *);
+struct	arg	*findarg(struct func *, int);
 void		genfuncname(struct table *, char *, char *, int);
 void		generatesql(struct table *, FILE *);
 void		genprolog(char *, FILE *);

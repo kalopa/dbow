@@ -34,6 +34,11 @@ dnl
 dnl ABSTRACT
 dnl
 dnl $Log$
+dnl Revision 1.9  2004/05/18 11:18:48  dtynan
+dnl Deprecated the use of %proto and %code statements.  Also added new
+dnl keywords which will immediately emit the following block either to
+dnl the include file or to the code file respectively.
+dnl
 dnl Revision 1.8  2004/04/30 11:48:29  dtynan
 dnl Lots of changes for minor bug fixes, added functionality and the like.
 dnl Notably the following:
@@ -279,7 +284,7 @@ define(STRUCT_BODY,`
  * Structure definition for SQL table "$1".
  */
 struct db_$1 {
-forloop(i,0,STR_$1_NELEM0,`	concat(STYPE($1,i),STRNAME($1,i));
+forloop(z,0,STR_$1_NELEM0,`	concat(STYPE($1,z),STRNAME($1,z));
 ')};')
 
 define(INIT_PROTO,`
@@ -307,7 +312,7 @@ db_$1alloc()
 void
 db_$1free(struct db_$1 *p)
 {
-forloop(i,0,STR_$1_NELEM0,`FTYPE($1,i)')	free((char *)p);
+forloop(z,0,STR_$1_NELEM0,`FTYPE($1,z)')	free((char *)p);
 }
 
 struct db_$1 *
@@ -335,7 +340,7 @@ db_find$1next(dbow_conn *c, struct db_$1 *p)
 		db_$1free(p);
 		return(NULL);
 	}
-forloop(i,0,STR_$1_NELEM0,`ATYPE($1,i)
+forloop(z,0,STR_$1_NELEM0,`ATYPE($1,z)
 ')	return(p);
 }')
 
@@ -346,8 +351,8 @@ define(INSERT_BODY,`
 int
 $2(dbow_conn *c, struct db_$1 *p)
 {
-	if (dbow_query(c, "INSERT INTO $1 VALUES (QTYPE($1,0) forloop(i,1,STR_$1_NELEM0,`,QTYPE($1,i)'))",
-		p->STRNAME($1,0) forloop(i,1,STR_$1_NELEM0,`,p->STRNAME($1,i)')) < 0)
+	if (dbow_query(c, "INSERT INTO $1 VALUES (QTYPE($1,0) forloop(z,1,STR_$1_NELEM0,`,QTYPE($1,z)'))",
+		p->STRNAME($1,0) forloop(z,1,STR_$1_NELEM0,`,p->STRNAME($1,z)')) < 0)
 		return(-1);
 	if (p->STRNAME($1,0) == 0)
 		p->STRNAME($1,0) = dbow_insertid(c);
@@ -383,8 +388,8 @@ define(UPDATE_BODY,`
 int
 $2(dbow_conn *c, struct db_$1 *p, STYPE($1, $3) x)
 {
-	if (dbow_query(c, "UPDATE $1 SET STRNAME($1,0) = QTYPE($1,0) forloop(i,1,STR_$1_NELEM0,`,STRNAME($1,i) = QTYPE($1,i)') WHERE STRNAME($1,$3) = QTYPE($1,$3)",
-forloop(i,0,STR_$1_NELEM0,`			p->STRNAME($1,i),
+	if (dbow_query(c, "UPDATE $1 SET STRNAME($1,0) = QTYPE($1,0) forloop(z,1,STR_$1_NELEM0,`,STRNAME($1,z) = QTYPE($1,z)') WHERE STRNAME($1,$3) = QTYPE($1,$3)",
+forloop(z,0,STR_$1_NELEM0,`			p->STRNAME($1,z),
 			') x) < 0)
 		return(-1);
 	return(0);
@@ -397,7 +402,7 @@ define(DUMP_BODY,`
 void
 $2(struct db_$1 *p, FILE *fp)
 {
-forloop(i,0,STR_$1_NELEM0,`PTYPE($1,i)
+forloop(z,0,STR_$1_NELEM0,`PTYPE($1,z)
 ')
 }')
 

@@ -33,6 +33,12 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.3  2004/01/26 23:43:21  dtynan
+# Extensive changes to fix some M4 issues and some library issues.
+# Removed many of the functions which were used to parse data types
+# and made them inline instead.  Improved the M4 generator by adding
+# for loops.
+#
 # Revision 1.2  2003/11/17 13:15:19  dtynan
 # Various changes to fix errors in the back-end code.
 #
@@ -51,8 +57,8 @@ DBOWDIR=$(PREFIX)/share/dbow
 
 CFLAGS=	-g -Wall -I$(MYSQL_INC) -I../lib -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\"
 
-SRCS=	main.c table.c type.c parse.y gencode.c gensql.c
-OBJS=	main.o table.o type.o parse.o gencode.o gensql.o
+SRCS=	main.c table.c function.c type.c parse.y gencode.c gensql.c
+OBJS=	main.o table.o function.o type.o parse.o gencode.o gensql.o
 
 all:	dbow
 

@@ -36,17 +36,22 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.5  2004/05/18 11:18:48  dtynan
+ * Deprecated the use of %proto and %code statements.  Also added new
+ * keywords which will immediately emit the following block either to
+ * the include file or to the code file respectively.
+ *
  * Revision 1.4  2004/04/30 12:12:25  dtynan
  * Lots of changes for minor bug fixes, added functionality and the like.
  * Notably the following:
- *     o	Added a 'db_findXXXfirst()' function for searching the entired
- * 	table.
- *     o	Added a 'db_runXXXquery()' function which will run an SQL
- * 	statement (without parsing any arguments) and return the
- * 	first match.
- *     o	Fixed a bug where the include() m4 statement was being used
- * 	more than once.
- *     o	Put the 'EMIT' code at the bottom of the output file.
+ *     o Added a 'db_findXXXfirst()' function for searching the entired
+ * 	 table.
+ *     o Added a 'db_runXXXquery()' function which will run an SQL
+ * 	 statement (without parsing any arguments) and return the
+ * 	 first match.
+ *     o Fixed a bug where the include() m4 statement was being used
+ * 	 more than once.
+ *     o Put the 'EMIT' code at the bottom of the output file.
  *
  * Revision 1.3  2004/01/26 23:43:21  dtynan
  * Extensive changes to fix some M4 issues and some library issues.
@@ -80,23 +85,28 @@ char		input[MAXLINELEN+2];
 char		*inptr = NULL;
 char		*filename;
 struct	table	*curtable = NULL;
+struct	func	*curfunc = NULL;
 FILE		*fp;
 
 %}
 
 %union	{
 	int		nval;
+	char		*ival;
 	char		*sval;
 	struct	column	*cval;
 	struct	table	*tval;
+	struct	arg	*aval;
+	struct	func	*fval;
 };
 
 %term	<nval>	VAL
-%term	<sval>	IDENT
+%term	<sval>	STRING
+%term	<ival>	IDENT
 
 %term	PCENT ERROR
-%term	KW_CODE KW_DELETE KW_DUMP KW_EMIT KW_FUNCTION KW_INSERT
-%term	KW_PROTO KW_SEARCH KW_TABLE KW_TYPE KW_UPDATE
+%term	KW_ARG KW_CODE KW_DELETE KW_DUMP KW_EMIT KW_FUNCTION KW_INSERT
+%term	KW_NAME KW_PROTO KW_QUERY KW_SEARCH KW_TABLE KW_TYPE KW_UPDATE
 
 %term	KW_AUTOINCR KW_BIGINT KW_BLOB KW_CHAR KW_DECIMAL KW_DATE KW_DATETIME
 %term	KW_DOUBLE KW_ENUM KW_FLOAT KW_INT KW_KEY KW_LONGBLOB KW_LONGTEXT
@@ -107,9 +117,11 @@ FILE		*fp;
 
 %term	',' '(' ')' '{' '}' '/'
 
-%type	<nval>	class opttype optquals optqual
-%type	<sval>	ident
+%type	<nval>	number class opttype optquals optqual
+%type	<sval>	string
+%type	<ival>	ident
 %type	<tval>	ntname otname
+%type	<fval>	nfname
 
 %%
 
@@ -170,10 +182,20 @@ table_stmnt:	  PCENT KW_TABLE ntname '{' table_defs  PCENT '}'
 			struct column *cp;
 
 			for (cp = $3->chead; cp != NULL; cp = cp->next)
-				if (cp->flags & FLAG_PRIKEY)
+				if (cp->flags & FLAG_PRIKEY) {
 					sawpk = 1;
+					break;
+			}
 			if (!sawpk)
 				yyerror("no primary key defined in table");
+		}
+		;
+
+function_stmnt:	  PCENT opttype KW_FUNCTION nfname '{' func_defs PCENT '}'
+		{
+			if (!$2)
+				break;
+			printf("Function is VALID!\n");
 		}
 		;
 
@@ -225,21 +247,6 @@ update_stmnt:	  PCENT opttype KW_UPDATE otname ident
 		}
 		;
 
-function_stmnt:	  PCENT opttype KW_FUNCTION otname '{' PCENT '}'
-		{
-			if (!$2)
-				break;
-#ifdef NOTYET
-%type C function {
-	type	search
-	table	phonedir;
-	name	db_phonefindbyid;
-	column	phone_id;
-};
-#endif
-		}
-		;
-
 dump_stmnt:	  PCENT opttype KW_DUMP otname
 		{
 			if ($2)
@@ -269,6 +276,12 @@ ntname:		  ident
 		}
 		;
 
+nfname:		  ident
+		{
+			$$ = curfunc = newfunction($1, 0);
+		}
+		;
+
 otname:		  ident
 		{
 			if (($$ = findtable($1)) == NULL)
@@ -278,6 +291,11 @@ otname:		  ident
 
 table_defs:	  table_def
 		| table_defs ',' table_def
+		;
+
+
+func_defs:	  func_def
+		| func_defs ',' func_def
 		;
 
 table_def:	  ident class optquals
@@ -292,12 +310,46 @@ table_def:	  ident class optquals
 		}
 		;
 
+func_def:	  KW_TABLE otname
+		{
+			printf("TABLE:[%s]\n", $2);
+		}
+		| KW_TYPE KW_INSERT
+		{
+			printf("TYPE-INSERT\n");
+		}
+		| KW_TYPE KW_DELETE
+		{
+			printf("TYPE-DELETE\n");
+		}
+		| KW_TYPE KW_SEARCH
+		{
+			printf("TYPE-SEARCH\n");
+		}
+		| KW_TYPE KW_UPDATE
+		{
+			printf("TYPE-UPDATE\n");
+		}
+		| KW_NAME ident
+		{
+			printf("NAME:[%s]\n", $2);
+		}
+		| KW_QUERY string
+		{
+			printf("QUERY:[%s]\n", $2);
+		}
+		| KW_ARG number ident
+		{
+			printf("ARG%d:[%s]\n", $2, $3);
+		}
+		;
+
 class:		  KW_TINYINT
 		{
 			$$ = TYPE_TINYINT;
 			tlen = tprec = 0;
 		}
-		| KW_TINYINT '(' VAL ')'
+		| KW_TINYINT '(' number ')'
 		{
 			$$ = TYPE_TINYINT;
 			tlen = $3;
@@ -308,7 +360,7 @@ class:		  KW_TINYINT
 			$$ = TYPE_SMALLINT;
 			tlen = tprec = 0;
 		}
-		| KW_SMALLINT '(' VAL ')'
+		| KW_SMALLINT '(' number ')'
 		{
 			$$ = TYPE_SMALLINT;
 			tlen = $3;
@@ -319,7 +371,7 @@ class:		  KW_TINYINT
 			$$ = TYPE_MEDINT;
 			tlen = tprec = 0;
 		}
-		| KW_MEDINT '(' VAL ')'
+		| KW_MEDINT '(' number ')'
 		{
 			$$ = TYPE_MEDINT;
 			tlen = $3;
@@ -330,7 +382,7 @@ class:		  KW_TINYINT
 			$$ = TYPE_INT;
 			tlen = tprec = 0;
 		}
-		| KW_INT '(' VAL ')'
+		| KW_INT '(' number ')'
 		{
 			$$ = TYPE_INT;
 			tlen = $3;
@@ -341,7 +393,7 @@ class:		  KW_TINYINT
 			$$ = TYPE_BIGINT;
 			tlen = tprec = 0;
 		}
-		| KW_BIGINT '(' VAL ')'
+		| KW_BIGINT '(' number ')'
 		{
 			$$ = TYPE_BIGINT;
 			tlen = $3;
@@ -352,7 +404,7 @@ class:		  KW_TINYINT
 			$$ = TYPE_FLOAT;
 			tlen = tprec = 0;
 		}
-		| KW_FLOAT '(' VAL ',' VAL ')'
+		| KW_FLOAT '(' number ',' number ')'
 		{
 			$$ = TYPE_FLOAT;
 			tlen = $3;
@@ -363,7 +415,7 @@ class:		  KW_TINYINT
 			$$ = TYPE_DOUBLE;
 			tlen = tprec = 0;
 		}
-		| KW_DOUBLE '(' VAL ',' VAL ')'
+		| KW_DOUBLE '(' number ',' number ')'
 		{
 			$$ = TYPE_DOUBLE;
 			tlen = $3;
@@ -374,7 +426,7 @@ class:		  KW_TINYINT
 			$$ = TYPE_DOUBLE;
 			tlen = tprec = 0;
 		}
-		| KW_DOUBLE KW_PREC '(' VAL ',' VAL ')'
+		| KW_DOUBLE KW_PREC '(' number ',' number ')'
 		{
 			$$ = TYPE_DOUBLE;
 			tlen = $4;
@@ -385,7 +437,7 @@ class:		  KW_TINYINT
 			$$ = TYPE_DOUBLE;
 			tlen = tprec = 0;
 		}
-		| KW_REAL '(' VAL ',' VAL ')'
+		| KW_REAL '(' number ',' number ')'
 		{
 			$$ = TYPE_DOUBLE;
 			tlen = $3;
@@ -396,13 +448,13 @@ class:		  KW_TINYINT
 			$$ = TYPE_NUMERIC;
 			tlen = tprec = 0;
 		}
-		| KW_DECIMAL '(' VAL ')'
+		| KW_DECIMAL '(' number ')'
 		{
 			$$ = TYPE_NUMERIC;
 			tlen = $3;
 			tprec = 0;
 		}
-		| KW_DECIMAL '(' VAL ',' VAL ')'
+		| KW_DECIMAL '(' number ',' number ')'
 		{
 			$$ = TYPE_NUMERIC;
 			tlen = $3;
@@ -413,7 +465,7 @@ class:		  KW_TINYINT
 			$$ = TYPE_NUMERIC;
 			tlen = tprec = 0;
 		}
-		| KW_NUMERIC '(' VAL ',' VAL ')'
+		| KW_NUMERIC '(' number ',' number ')'
 		{
 			$$ = TYPE_NUMERIC;
 			tlen = $3;
@@ -439,7 +491,7 @@ class:		  KW_TINYINT
 			$$ = TYPE_TSTAMP;
 			tlen = tprec = 0;
 		}
-		| KW_TSTAMP '(' VAL ')'
+		| KW_TSTAMP '(' number ')'
 		{
 			$$ = TYPE_TSTAMP;
 			tlen = $3;
@@ -450,31 +502,31 @@ class:		  KW_TINYINT
 			$$ = TYPE_YEAR;
 			tlen = tprec = 0;
 		}
-		| KW_YEAR '(' VAL ')'
+		| KW_YEAR '(' number ')'
 		{
 			$$ = TYPE_YEAR;
 			tlen = $3;
 			tprec = 0;
 		}
-		| KW_CHAR '(' VAL ')'
+		| KW_CHAR '(' number ')'
 		{
 			$$ = TYPE_CHAR;
 			tlen = $3;
 			tprec = 0;
 		}
-		| KW_NATIONAL KW_CHAR '(' VAL ')'
+		| KW_NATIONAL KW_CHAR '(' number ')'
 		{
 			$$ = TYPE_CHAR;
 			tlen = $4;
 			tprec = 0;
 		}
-		| KW_VARCHAR '(' VAL ')'
+		| KW_VARCHAR '(' number ')'
 		{
 			$$ = TYPE_VARCHAR;
 			tlen = $3;
 			tprec = 0;
 		}
-		| KW_NATIONAL KW_VARCHAR '(' VAL ')'
+		| KW_NATIONAL KW_VARCHAR '(' number ')'
 		{
 			$$ = TYPE_VARCHAR;
 			tlen = $4;
@@ -549,6 +601,12 @@ optqual:	  KW_UNSIGNED { $$ = FLAG_UNSIGNED; }
 
 ident:		  IDENT
 		;
+
+string:		  STRING
+		;
+
+number:		  VAL
+		;
 %%
 
 /*
@@ -558,6 +616,7 @@ struct	keyword	{
 	char	*name;
 	int	value;
 } keywords[] = {
+	{"arg",			KW_ARG},
 	{"auto_increment",	KW_AUTOINCR},
 	{"bigint",		KW_BIGINT},
 	{"blob",		KW_BLOB},
@@ -583,12 +642,14 @@ struct	keyword	{
 	{"mediumint",		KW_MEDINT},
 	{"mediumtext",		KW_MEDTEXT},
 	{"national",		KW_NATIONAL},
+	{"name",		KW_NAME},
 	{"not",			KW_NOT},
 	{"null",		KW_NULL},
 	{"numeric",		KW_NUMERIC},
 	{"precision",		KW_PREC},
 	{"primary",		KW_PRIMARY},
 	{"proto",		KW_PROTO},
+	{"query",		KW_QUERY},
 	{"real",		KW_REAL},
 	{"search",		KW_SEARCH},
 	{"set",			KW_SET},
@@ -728,6 +789,24 @@ yylex()
 		 */
 		return(*inptr++);
 
+	case '"':
+		/*
+		 * Seems to be a character string.  Store it up until
+		 * we reach the end of it.
+		 */
+		yylval.sval = ++inptr;
+		while (*inptr != '\0' && *inptr != '"') {
+			if (*inptr == '\\') {
+				inptr++;
+				if (*inptr == '\0')
+					break;
+			}
+			inptr++;
+		}
+		if (*inptr != '\0')
+			*inptr++ = '\0';
+		return(STRING);
+
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
 		/*
@@ -769,7 +848,7 @@ yylex()
 	 * No?  It must be a symbol or identifier or something.
 	 * Return it as a string identifier.
 	 */
-	yylval.sval = strdup(token);
+	yylval.ival = strdup(token);
 	return(IDENT);
 }
 

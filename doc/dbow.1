@@ -1,0 +1,365 @@
+.TH DBOW "1" "$Date$"
+.SH NAME
+dbow \- a database compiler-compiler or front-end.
+.SH SYNOPSIS
+.B dbow
+[
+.B \-x
+]
+[
+.B \-N
+]
+[
+.B \-m
+]
+[
+.B \-v
+]
+[
+.B \-t
+.I type
+]
+.br
+	[
+.B \-h
+.I include-file
+]
+[
+.B \-o
+.I file
+]
+.I input-file ...
+.SH DESCRIPTION
+DBOW is a database compiler-compiler, or database front-end.
+It takes table definitions in a relatively high-level language
+and prepares C, C++, PHP, Perl (etc) functions for managing and
+manipulating the database records.
+It will also produce SQL table data for MySQL or other SQL-based
+databases.
+.PP
+DBOW allows a user to define a database table using a meta-language
+(quite similar to the SQL
+.B "CREATE TABLE"
+syntax).
+This source file can then be processed by DBOW to produce SQL for
+actually creating the table, a C include file with a structure
+definition,
+C functions for inserting, deleting, searching and updating the
+database, and housekeeping functions for maintaining the structure.
+.PP
+DBOW allows the user to manage the table definition in one source
+file, and automatically produces the code for directly manipulating
+the database.
+.SH COMMAND LINE OPTIONS
+.TP
+.BI "\-h " include-file
+Specify the prototype file to generate.
+Normally this would be of the form
+.I foo.h
+which would specify that the C struct definition and function
+prototypes should be placed in a file called foo.h
+.TP
+.B \-m
+Output an intermediate M4 file rather than a final source file.
+DBOW uses M4 to produce the actual C, Perl and PHP source.
+DBOW will produce an M4 source file with the appropriate table
+definitions and will then invoke M4 along with the associated
+M4 template file (such as perl.m4) to produce the source.
+For debugging purposes, it is useful to see the M4 produced
+and manually execute it against the template.
+.TP
+.B \-N
+Do not emit line number synchronization marks.
+.TP
+.BI "\-o " output-file
+Specify the output filename.
+The default is to strip the default DBOW file extension (.d) from
+the end of the input file and append the code-specific extension
+such as .sql, .c, .php etc.
+.TP
+.BI "\-t " type
+Specifies the output filetype to produce.
+This can be one of mysql, c, c++, php, perl, etc.
+.TP
+.B \-x
+Turn on debugging.
+Only useful for debugging DBOW.
+.TP
+.B \-v
+Print the DBOW version and exit.
+.SH DBOW LANGUAGE DEFINITION
+In a DBOW source file, lines beginning with
+.B #
+are comments.
+.PP
+All DBOW commands are prefixed by a percent (%) character.
+The most important is the
+.B %table
+command.
+This is used to define a database table.
+It takes the form
+.PP
+.RS
+.nf
+%table foo {
+	column-name class optional-qualifiers
+	...
+%}
+.fi
+.RE
+.PP
+This will create an SQL table called foo.
+Columns are specified in a comma-separated list starting with the
+name of the column and its class (see below) and any optional
+qualifiers.
+.PP
+The following is a list of the types of columns which can be
+used in DBOW:
+.PP
+.RS
+.nf
+tinyint
+tinyint(size)
+smallint
+smallint(size)
+mediumint
+mediumint(size)
+integer
+integer(size)
+bigint
+bigint(size)
+float
+float(size,prec)
+double
+double(size,prec)
+double precision
+double precision(size,prec)
+real
+real(size,prec)
+decimal
+decimal(size)
+decimal(size,prec)
+numeric
+numeric(size,prec)
+date
+time
+datetime
+timestamp
+timestamp(size)
+year
+year(size)
+char(size)
+national char(size)
+varchar(size)
+national varchar(size)
+tinyblob
+tinytext
+blob
+text
+mediumblob
+mediumtext
+longblob
+longtext
+.fi
+.RE
+.PP
+Each of these can be followed by one or more of the following qualifiers:
+.PP
+.nf
+.RS
+unsigned
+not null
+primary key
+unique
+auto_increment
+.RE
+.fi
+.PP
+For more information on column definitions, refer to the SQL standard
+or to the documentation for MySQL.
+Note that unlike SQL, column names cannot use any of the above
+reserved words or any of the DBOW reserved words.
+.PP
+The
+.B %type
+statement allows the user to qualify certain statements based on the
+output type.
+For example,
+.PP
+.I "%type C emit"
+.PP
+means if we are producing C code, then execute the
+.I emit
+statement.
+.PP
+The
+.B %code
+statement allows us to insert code into the output file.
+This is handy for including copyright blocks, CVS tags or
+hand-crafted code.
+.PP
+For example, the following DBOW statements add an include statement
+into the output code if it is we are producing C source.
+.PP
+.nf
+.RS
+%type C code {
+/*
+ * Make sure we include the right .h files.
+ */
+#include <stdlib.h>
+%}
+.RE
+.fi
+.PP
+The
+.B %proto
+statement allows us to insert code into the include file
+or into the output file during the prototype phase.
+.PP
+The
+.B %emit
+statement allows us to append code to the end of the output file.
+This is useful for including functions such as
+.I main()
+and the like so that the C output produced is completely
+self-contained.
+.PP
+The
+.B "%insert <table> [name]"
+statement tells DBOW to create an insert function in the output
+file.
+The table argument specifies the table name for the insert function
+and the optional
+.I name
+field specifies the name of the function.
+.PP
+The
+.B "%delete <table> [name]"
+statement tells DBOW to create a delete function in the output file.
+The arguments are similar to those for the
+.I insert
+statement.
+.PP
+The
+.B "%search <table> <column> [name]"
+statement tells DBOW to create a search function in the output file.
+The table argument specifies the table name for the search function,
+the column name specifies the name of the column to search against
+and the optional
+.I name
+field specifies the name of the function.
+.PP
+The
+.B "%update <table> <column> [name]"
+statement tells DBOW to create an update function in the output file.
+The remaining arguments are similar to those for the
+.I search
+statement.
+.PP
+The
+.B "%dump <table>"
+statement tells DBOW to produce a function in the output file which will
+display the contents of a given record.
+.PP
+The
+.B %function
+statement is used to create complex functions which could involve joins,
+sorted output, multiple search criteria, etc.
+It is still in development.
+.SH EXAMPLES
+To produce C code from a sample DBOW source file, run the command:
+.PP
+.B
+	dbow -t c sample.d
+.PP
+This will produce the file
+.I sample.c
+with code to insert, delete, update and search the MySQL database
+table (or tables) specified in the source file.
+.PP
+To also produce an include file with the C struct and function
+prototypes, use the
+.I \-h
+option.
+For example;
+.PP
+.B
+	dbow -t c -h sample.h sample.d
+.PP
+will produce an include file as well as a source file.
+.PP
+To produce SQL for creating the actual table, use the command;
+.PP
+.B
+	dbow -t mysql sample.d
+.PP
+which will produce a file called sample.sql.
+.PP
+The following is a sample DBOW source file:
+.PP
+.nf
+.RS
+#
+# Put out a C-style comment block for all file types.
+#
+%proto {
+/*
+ * $Id$
+ */
+%}
+
+#
+# Define the table.
+#
+%table user {
+	user_id mediumint(7) NOT NULL AUTO_INCREMENT primary key,
+	name varchar(254),
+	handle varchar(254) NOT NULL,
+	password varchar(254) NOT NULL
+%}
+
+#
+# Define non-standard functions...
+#
+%search user user_id
+%search user handle
+%type C dump user
+.RE
+.fi
+.PP
+.SH FILES AND DIRECTORIES
+These are subject to difference depending on local installation
+conventions; ${prefix} and ${exec_prefix} are installation-dependent
+and should be interpreted as for GNU software; they may be the same.
+The default for both is \fI/usr/local\fP.
+.IP \fI${exec_prefix}/bin/dbow\fP
+.RS
+Recommended location of the interpreter.
+.RE
+.PP
+.I ${prefix}/share/dbow
+.RS
+Recommended location of the directory containing the standard
+template modules.
+.RE
+.PP
+.I ${prefix}/lib
+.RS
+Recommended location of DBOW library module.
+.RE
+.SH BUGS
+Currently the support for languages other than plain C is limited.
+While the C template is being worked and reworked to add features,
+it's unlikely that the other languages will also be kept up to
+date.
+.SH AUTHOR
+.nf
+Dermot Tynan
+E-mail: dtynan@kalopa.com
+Website:  http://dbow.sf.net/
+.fi
+.SH LICENSING
+DBOW is distributed under the GPL.
+In the near future, libdbow.a will probably be
+rereleased under the LGPL or the BSD license.
