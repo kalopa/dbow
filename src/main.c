@@ -35,6 +35,12 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.4  2004/01/26 23:43:21  dtynan
+ * Extensive changes to fix some M4 issues and some library issues.
+ * Removed many of the functions which were used to parse data types
+ * and made them inline instead.  Improved the M4 generator by adding
+ * for loops.
+ *
  * Revision 1.3  2003/11/17 13:15:20  dtynan
  * Various changes to fix errors in the back-end code.
  *
@@ -238,7 +244,7 @@ genfuncname(struct table *tp, char *cname, char *fname, int type)
 		if (cp == NULL)
 			return;
 		if (cp->dfname != NULL) {
-			yyerror("multiple insert definitions for table");
+			yyerror("multiple insert definitions for column");
 			return;
 		}
 		xp = "delete";
@@ -247,7 +253,7 @@ genfuncname(struct table *tp, char *cname, char *fname, int type)
 		if (cp == NULL)
 			return;
 		if (cp->sfname != NULL) {
-			yyerror("multiple insert definitions for table");
+			yyerror("multiple insert definitions for column");
 			return;
 		}
 		xp = "find";
@@ -256,7 +262,7 @@ genfuncname(struct table *tp, char *cname, char *fname, int type)
 		if (cp == NULL)
 			return;
 		if (cp->ufname != NULL) {
-			yyerror("multiple insert definitions for table");
+			yyerror("multiple insert definitions for column");
 			return;
 		}
 		xp = "update";
@@ -292,8 +298,10 @@ genfuncname(struct table *tp, char *cname, char *fname, int type)
 void
 doproto(char *fname, int lineno)
 {
+	int sf, uf, df;
 	static int protodone = 0;
 	struct table *tp;
+	struct column *cp, *sfc, *ufc, *dfc;
 
 	/*
 	 * Make sure we only execute once...
@@ -310,6 +318,50 @@ doproto(char *fname, int lineno)
 		 */
 		if (tp->ifname == NULL)
 			genfuncname(tp, NULL, NULL, DBOW_INSERT);
+		/*
+		 * Make sure there is at least one search, delete and
+		 * update function for each table.  -2 means we haven't
+		 * seen anything yet.  -1 means there is a function
+		 * definition already, and 0 or better is the column
+		 * name for the first primary key.
+		 */
+		sf = uf = df = 0;
+		sfc = ufc = dfc = NULL;
+		for (cp = tp->chead; cp != NULL; cp = cp->next) {
+			if (sf == 0) {
+				if (cp->sfname != NULL) {
+					sf = 1;
+					sfc = NULL;
+				} else if (sfc == NULL && cp->flags & FLAG_PRIKEY)
+					sfc = cp;
+			}
+			if (uf == 0) {
+				if (cp->ufname != NULL) {
+					uf = 1;
+					ufc = NULL;
+				} else if (ufc == NULL && cp->flags & FLAG_PRIKEY)
+					ufc = cp;
+			}
+			if (df == 0) {
+				if (cp->dfname != NULL) {
+					df = 1;
+					ufc = NULL;
+				} else if (dfc == NULL && cp->flags & FLAG_PRIKEY)
+					dfc = cp;
+			}
+		}
+		/*
+		 * Build each default function (where needed).
+		 */
+		if (sfc != NULL)
+			genfuncname(tp, sfc->name, NULL, DBOW_SEARCH);
+		if (ufc != NULL)
+			genfuncname(tp, ufc->name, NULL, DBOW_UPDATE);
+		if (dfc != NULL)
+			genfuncname(tp, dfc->name, NULL, DBOW_DELETE);
+		/*
+		 * Now emit the actual M4 definitions for each table...
+		 */
 		gendefs(tp, fofile, fofp);
 		if (fofp != hofp)
 			gendefs(tp, hofile, hofp);

@@ -35,6 +35,12 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.4  2004/01/26 23:43:21  dtynan
+ * Extensive changes to fix some M4 issues and some library issues.
+ * Removed many of the functions which were used to parse data types
+ * and made them inline instead.  Improved the M4 generator by adding
+ * for loops.
+ *
  * Revision 1.3  2003/11/17 13:15:20  dtynan
  * Various changes to fix errors in the back-end code.
  *
@@ -48,6 +54,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -78,18 +85,21 @@ char	*codetype[NTYPES] = {
  *
  */
 static void
-setboolfield(char *label, char *val1, FILE *fp)
+setfield(char *label, char *val, FILE *fp)
 {
-	fprintf(fp, "%s(%s)\n", label, val1);
+	fprintf(fp, "%s(%s)\n", label, val);
 }
 
 /*
  *
  */
 static void
-setintfield(char *label, char *val1, int val2, FILE *fp)
+dofunction(char *label, struct table *tp, char *fname, int fno, FILE *fp)
 {
-	fprintf(fp, "%s(%s,%d)\n", label, val1, val2);
+	fprintf(fp, "%s(%s,`%s'", label, tp->name, fname);
+	if (fno >= 0)
+		fprintf(fp, ",%d", fno);
+	fprintf(fp, ")\n");
 }
 
 /*
@@ -165,7 +175,7 @@ gendefs(struct table *tp, char *fname, FILE *fp)
 	setinttype(tp->name, "NELEM", 0, fno, fp);
 	divert(0, fp);
 	m4include(fp);
-	setboolfield("FILE_PROLOG", fname, fp);
+	setfield("FILE_PROLOG", fname, fp);
 }
 
 /*
@@ -174,6 +184,7 @@ gendefs(struct table *tp, char *fname, FILE *fp)
 void
 genstr(struct table *tp, FILE *fp)
 {
+	char *dname;
 	struct column *cp;
 
 	/*
@@ -183,19 +194,25 @@ genstr(struct table *tp, FILE *fp)
 		generatesql(tp, fp);
 		return;
 	}
-	setboolfield("STRUCT_BODY", tp->name, fp);
-	setboolfield("INIT_PROTO", tp->name, fp);
-	setboolfield("INSERT_PROTO", tp->name, fp);
+	setfield("STRUCT_BODY", tp->name, fp);
+	setfield("INIT_PROTO", tp->name, fp);
+	if (tp->ifname != NULL)
+		dofunction("INSERT_PROTO", tp, tp->ifname, -1, fp);
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
 		if (cp->dfname != NULL)
-			setintfield("DELETE_PROTO", tp->name, cp->fno, fp);
+			dofunction("DELETE_PROTO", tp, cp->dfname, cp->fno, fp);
 		if (cp->sfname != NULL)
-			setintfield("SEARCH_PROTO", tp->name, cp->fno, fp);
+			dofunction("SEARCH_PROTO", tp, cp->sfname, cp->fno, fp);
 		if (cp->ufname != NULL)
-			setintfield("UPDATE_PROTO", tp->name, cp->fno, fp);
+			dofunction("UPDATE_PROTO", tp, cp->ufname, cp->fno, fp);
 	}
-	if (tp->flags & FLAG_DUMP)
-		setboolfield("DUMP_PROTO", tp->name, fp);
+	if (tp->flags & FLAG_DUMP) {
+		if ((dname = malloc(strlen(tp->name) + 8)) == NULL)
+			return;
+		sprintf(dname, "db_dump%s", tp->name);
+		dofunction("DUMP_PROTO", tp, dname, -1, fp);
+		free(dname);
+	}
 }
 
 /*
@@ -204,6 +221,7 @@ genstr(struct table *tp, FILE *fp)
 void
 gencode(struct table *tp, FILE *fp)
 {
+	char *dname;
 	struct column *cp;
 
 	/*
@@ -211,18 +229,24 @@ gencode(struct table *tp, FILE *fp)
 	 */
 	if (active->cdtype == CDT_DBASE)
 		return;
-	setboolfield("INIT_BODY", tp->name, fp);
-	setboolfield("INSERT_BODY", tp->name, fp);
+	setfield("INIT_BODY", tp->name, fp);
+	if (tp->ifname != NULL)
+		dofunction("INSERT_BODY", tp, tp->ifname, -1, fp);
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
 		if (cp->dfname != NULL)
-			setintfield("DELETE_BODY", tp->name, cp->fno, fp);
+			dofunction("DELETE_BODY", tp, cp->dfname, cp->fno, fp);
 		if (cp->sfname != NULL)
-			setintfield("SEARCH_BODY", tp->name, cp->fno, fp);
+			dofunction("SEARCH_BODY", tp, cp->sfname, cp->fno, fp);
 		if (cp->ufname != NULL)
-			setintfield("UPDATE_BODY", tp->name, cp->fno, fp);
+			dofunction("UPDATE_BODY", tp, cp->ufname, cp->fno, fp);
 	}
-	if (tp->flags & FLAG_DUMP)
-		setboolfield("DUMP_BODY", tp->name, fp);
+	if (tp->flags & FLAG_DUMP) {
+		if ((dname = malloc(strlen(tp->name) + 8)) == NULL)
+			return;
+		sprintf(dname, "db_dump%s", tp->name);
+		dofunction("DUMP_BODY", tp, dname, -1, fp);
+		free(dname);
+	}
 }
 
 /*

@@ -35,6 +35,12 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2004/01/26 23:43:21  dtynan
+ * Extensive changes to fix some M4 issues and some library issues.
+ * Removed many of the functions which were used to parse data types
+ * and made them inline instead.  Improved the M4 generator by adding
+ * for loops.
+ *
  * Revision 1.2  2003/11/17 13:15:20  dtynan
  * Various changes to fix errors in the back-end code.
  *
@@ -86,6 +92,8 @@ findtype(char *type)
 void
 linesync(char *fname, int lineno, FILE *fp)
 {
+	if (nflag)
+		return;
 	switch (active - types) {
 	case 0:
 	case 1:
