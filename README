@@ -22,3 +22,6 @@ It will be extended to support other languages and database constructs
 as required. It currently compiles/runs on FreeBSD/Linux.  It
 doesn't require any other libraries or elements except YACC/Bison.
 
+If you have any questions, queries, comments, bugs, bug fixes or
+stuff related to DBOW, please send me an email at dtynan@kalopa.com.
+

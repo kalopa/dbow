@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.5  2004/01/28 13:53:57  dtynan
+# Minor changes prior to 0.3 release.
+#
 # Revision 1.4  2004/01/26 23:46:46  dtynan
 # Don't produce a separate include file.
 #
@@ -47,7 +50,7 @@
 # Major revision of the DBOW code to use M4 as a back-end instead of
 # hard-coding the output.
 #
-.SUFFIXES:	.d .sql
+.SUFFIXES:	.d .sql .m4
 
 MYSQL_INC=/usr/local/include/mysql
 MYSQL_LIB=/usr/local/lib/mysql
@@ -77,3 +80,6 @@ sample: sample.o
 	../src/dbow -N -t C -o $*.c $<
 	$(CC) $(CFLAGS) -c $*.c
 	rm -f $*.c
+
+.d.m4:
+	../src/dbow -m -t C -o $*.m4 $<

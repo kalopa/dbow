@@ -35,6 +35,9 @@
 # defintion, which closely resembles the SQL table code.
 #
 # $Log$
+# Revision 1.3  2004/01/28 13:53:57  dtynan
+# Minor changes prior to 0.3 release.
+#
 # Revision 1.2  2003/10/14 14:10:56  dtynan
 # Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
 # reduce blank lines in the output.
@@ -52,6 +55,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 1.3  2004/01/28 13:53:57  dtynan
+ * Minor changes prior to 0.3 release.
+ *
  * Revision 1.2  2003/10/14 14:10:56  dtynan
  * Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
  * reduce blank lines in the output.
@@ -96,6 +102,8 @@
 #
 # Define non-standard functions...
 #
+%search user user_id
+%search user handle
 %type C dump user
 
 %proto

@@ -34,6 +34,9 @@ dnl
 dnl ABSTRACT
 dnl
 dnl $Log$
+dnl Revision 1.7  2004/02/02 12:45:22  dtynan
+dnl Added missing include files.
+dnl
 dnl Revision 1.6  2004/01/28 18:57:58  dtynan
 dnl Fixed another couple of minor gotcha's.
 dnl
@@ -273,6 +276,8 @@ define(INIT_PROTO,`
  */
 struct db_$1 *db_$1alloc();
 void db_$1free(struct db_$1 *p);
+struct db_$1 *db_run$1query(dbow_conn *c, char *q);
+struct db_$1 *db_find$1first(dbow_conn *c);
 struct db_$1 *db_find$1next(dbow_conn *c, struct db_$1 *p);')
 
 define(INIT_BODY,`
@@ -291,6 +296,20 @@ void
 db_$1free(struct db_$1 *p)
 {
 forloop(i,0,STR_$1_NELEM0,`FTYPE($1,i)')	free((char *)p);
+}
+
+struct db_$1 *
+db_run$1query(dbow_conn *c, char *q)
+{
+	if (dbow_query(c, q) < 0)
+		return(NULL);
+	return(db_find$1next(c, NULL));
+}
+
+struct db_$1 *
+db_find$1first(dbow_conn *c)
+{
+	return(db_run$1query(c, "SELECT * FROM $1"));
 }
 
 struct db_$1 *
@@ -374,6 +393,7 @@ divert(0)dnl
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <string.h>
 #include "dbow.h"
 
