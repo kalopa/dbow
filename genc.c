@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.4  2003/07/29 00:30:03  dtynan
+ * Lots of changes.
+ *
  * Revision 1.3  2003/07/28 23:44:59  dtynan
  * Fixed a bug with the separate include file not being invoked for a split
  * generation.  Also made sure that dbow.h only got invoked once.  Fixed a
@@ -119,9 +122,9 @@ str_c(struct table *tp, FILE *fp)
 {
 	struct column *cp;
 
-	fprintf(fp, "/*\n * Structure definition for ");
+	fprintf(fp, "\n/*\n * Structure definition for ");
 	fprintf(fp, "SQL table %s\n */\n", tp->name);
-	fprintf(fp, "\nstruct %s {\n", tp->pfx);
+	fprintf(fp, "struct %s {\n", tp->pfx);
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
 		fprintf(fp, "\t%s\t%s", cdef(cp), cp->name);
 		if (cp->type == TYPE_CHAR)
