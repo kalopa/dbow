@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.4  2004/01/26 23:46:46  dtynan
+# Don't produce a separate include file.
+#
 # Revision 1.3  2003/11/17 13:15:16  dtynan
 # Various changes to fix errors in the back-end code.
 #
@@ -68,9 +71,9 @@ sample: sample.o
 	../src/dbow -t mysql -o $@ $<
 
 .d.c:	
-	../src/dbow -t C -o $@ $<
+	../src/dbow -N -t C -o $@ $<
 
 .d.o:	
-	../src/dbow -t C -o $*.c $<
+	../src/dbow -N -t C -o $*.c $<
 	$(CC) $(CFLAGS) -c $*.c
 	rm -f $*.c
