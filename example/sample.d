@@ -35,6 +35,11 @@
 # defintion, which closely resembles the SQL table code.
 #
 # $Log$
+# Revision 1.5  2004/05/18 11:18:47  dtynan
+# Deprecated the use of %proto and %code statements.  Also added new
+# keywords which will immediately emit the following block either to
+# the include file or to the code file respectively.
+#
 # Revision 1.4  2004/04/30 11:48:29  dtynan
 # Lots of changes for minor bug fixes, added functionality and the like.
 # Notably the following:
@@ -67,6 +72,11 @@
  * $Id$
  *
  * $Log$
+ * Revision 1.5  2004/05/18 11:18:47  dtynan
+ * Deprecated the use of %proto and %code statements.  Also added new
+ * keywords which will immediately emit the following block either to
+ * the include file or to the code file respectively.
+ *
  * Revision 1.4  2004/04/30 11:48:29  dtynan
  * Lots of changes for minor bug fixes, added functionality and the like.
  * Notably the following:
@@ -133,7 +143,7 @@
 #
 # An additional C function to make the resultant code executable.
 #
-%type C code {
+%type C emit {
 
 extern	int	optind;
 extern	int	opterr;
