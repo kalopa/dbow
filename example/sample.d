@@ -35,20 +35,6 @@
 # defintion, which closely resembles the SQL table code.
 #
 # $Log$
-# Revision 1.5  2003/07/29 15:22:51  dtynan
-# Revised copyright prior to first public release.
-#
-# Revision 1.4  2003/07/29 15:17:30  dtynan
-# Lots and lots of changes.
-#
-# Revision 1.3  2003/07/29 00:30:04  dtynan
-# Lots of changes.
-#
-# Revision 1.2  2003/07/28 21:48:40  dtynan
-# Minor tweaks, including fixing some gensync issues.
-#
-# Revision 1.1  2003/07/28 21:31:59  dtynan
-# First pass at an intelligent front-end for databases.
 #
 
 #
@@ -97,6 +83,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#define DB_HOST		"localhost"
 #define DB_USER		"db_user"
 #define DB_PWD		"db_pwd"
 #define DB_NAME		"db_name"
@@ -113,16 +100,20 @@ void	usage();
 main(int argc, char *argv[])
 {
 	int i, userid;
-	char *dbuser, *dbpwd, *dbname;
+	char *dbhost, *dbuser, *dbpwd, *dbname;
 	struct db_user *dbup;
 	dbow_conn *conn;
 
 	optind = opterr = 0;
+	dbhost = DB_HOST;
 	dbuser = DB_USER;
 	dbpwd  = DB_PWD;
 	dbname = DB_NAME;
-	while ((i = getopt(argc, argv, "u:p:d:")) != EOF) {
+	while ((i = getopt(argc, argv, "h:u:p:d:")) != EOF) {
 		switch (i) {
+		case 'h':
+			dbhost = optarg;
+			break;
 		case 'u':
 			dbuser = optarg;
 			break;
@@ -139,7 +130,7 @@ main(int argc, char *argv[])
 	}
 	if ((argc - optind) < 1)
 		usage();
-	if ((conn = dbow_init(dbuser, dbpwd, dbname)) == NULL) {
+	if ((conn = dbow_init(dbhost, dbuser, dbpwd, dbname)) == NULL) {
 		fprintf(stderr, "sample: cannot connect to database.\n");
 		exit(1);
 	}
@@ -164,7 +155,7 @@ main(int argc, char *argv[])
 void
 usage()
 {
-	fprintf(stderr, "Usage: sample [-u user][-p pwd][-d dbase] <uid>...\n");
+	fprintf(stderr, "Usage: sample [-h host][-u user][-p pwd][-d dbase] <uid>...\n");
 	exit(2);
 }
 %}

@@ -35,54 +35,15 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.3  2003/07/28 23:14:16  dtynan
- * Added a check to make sure each table has at least one primary key and
- * also removed the structure-definition from within PHP (it's now done
- * by the code-definition block.
- *
- * Revision 1.2  2003/07/28 21:48:41  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:59  dtynan
- * First pass at an intelligent front-end for databases.
  */
 
-#include <stdio.h>
-
-#include "dbowint.h"
-
-
-extern	int	line_c(char *, int, FILE *);
-extern	int	str_c(struct table *, FILE *);
-extern	int	code_c(struct table *, FILE *);
-extern	int	line_cpp(char *, int, FILE *);
-extern	int	str_cpp(struct table *, FILE *);
-extern	int	code_cpp(struct table *, FILE *);
-extern	int	str_perl(struct table *, FILE *);
-extern	int	code_perl(struct table *, FILE *);
-extern	int	code_php(struct table *, FILE *);
-extern	int	str_sql(struct table *, FILE *);
-
-struct	type	types[] = {
-	{"c", "c.prolog", NULL, line_c, str_c, code_c, "c", CDT_CODE},
-	{"c++", "c.prolog", NULL, line_cpp, str_cpp, code_cpp, "cpp", CDT_CODE},
-	{"perl", "perl.prolog", NULL, NULL, str_perl, code_perl, "p", CDT_CODE},
-	{"php", "php.prolog", "php.epilog", NULL, NULL, code_php, "php", CDT_CODE},
-	{"mysql", "mysql.prolog", NULL, NULL, str_sql, NULL, "sql", CDT_DBASE},
-	{NULL,NULL,NULL,NULL,NULL,0}
-};
+#include "dbow.h"
 
 /*
  *
  */
-struct type *
-findtype(char *type)
+int
+dbow_insertid(dbow_conn *conn)
 {
-	int i;
-	struct type *tp;
-
-	for (tp = types; tp->name != NULL; tp++)
-		if (strcasecmp(type, tp->name) == 0)
-			return(tp);
-	return(NULL);
+	return(mysql_insert_id(conn));
 }

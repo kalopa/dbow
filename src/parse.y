@@ -36,22 +36,6 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.5  2003/07/29 15:17:30  dtynan
- * Lots and lots of changes.
- *
- * Revision 1.4  2003/07/29 00:30:04  dtynan
- * Lots of changes.
- *
- * Revision 1.3  2003/07/28 23:14:16  dtynan
- * Added a check to make sure each table has at least one primary key and
- * also removed the structure-definition from within PHP (it's now done
- * by the code-definition block.
- *
- * Revision 1.2  2003/07/28 21:48:40  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:58  dtynan
- * First pass at an intelligent front-end for databases.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,8 +108,7 @@ emit_stmnt:	  PCENT opttype KW_EMIT '{'
 		{
 			int show = $2;
 
-			if (active->gensync != NULL)
-				active->gensync(filename, lineno + 1, fofp);
+			gensync(filename, lineno + 1, fofp);
 			while (lexline() != EOF) {
 				if (strcmp(input, "%}") == 0)
 					break;
@@ -151,52 +134,52 @@ table_stmnt:	  PCENT KW_TABLE ntname '{' table_defs  PCENT '}'
 insert_stmnt:	  PCENT opttype KW_INSERT otname
 		{
 			if ($2)
-				genfuncname($4, NULL, NULL, ACTION_INSERT);
+				genfuncname($4, NULL, NULL, DBOW_INSERT);
 		}
 		| PCENT opttype KW_INSERT otname ident
 		{
 			if ($2)
-				genfuncname($4, NULL, $5, ACTION_INSERT);
+				genfuncname($4, NULL, $5, DBOW_INSERT);
 		}
 		;
 
 delete_stmnt:	  PCENT opttype KW_DELETE otname ident
 		{
 			if ($2)
-				genfuncname($4, $5, NULL, ACTION_DELETE);
+				genfuncname($4, $5, NULL, DBOW_DELETE);
 		}
 		| PCENT opttype KW_DELETE otname ident ident
 		{
 			if ($2)
-				genfuncname($4, $5, $6, ACTION_DELETE);
+				genfuncname($4, $5, $6, DBOW_DELETE);
 		}
 		;
 
 search_stmnt:	  PCENT opttype KW_SEARCH otname ident
 		{
 			if ($2)
-				genfuncname($4, $5, NULL, ACTION_SEARCH);
+				genfuncname($4, $5, NULL, DBOW_SEARCH);
 		}
 		| PCENT opttype KW_SEARCH otname ident ident
 		{
 			if ($2)
-				genfuncname($4, $5, $6, ACTION_SEARCH);
+				genfuncname($4, $5, $6, DBOW_SEARCH);
 		}
 		;
 
 update_stmnt:	  PCENT opttype KW_UPDATE otname ident
 		{
 			if ($2)
-				genfuncname($4, $5, NULL, ACTION_UPDATE);
+				genfuncname($4, $5, NULL, DBOW_UPDATE);
 		}
 		| PCENT opttype KW_UPDATE otname ident ident
 		{
 			if ($2)
-				genfuncname($4, $5, $6, ACTION_UPDATE);
+				genfuncname($4, $5, $6, DBOW_UPDATE);
 		}
 		;
 
-function_stmnt:	  PCENT opttype KW_FUNCTION
+function_stmnt:	  PCENT opttype KW_FUNCTION otname '{' func_stmnts PCENT '}'
 		;
 
 dump_stmnt:	  PCENT opttype KW_DUMP otname

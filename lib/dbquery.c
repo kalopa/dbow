@@ -35,40 +35,43 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.2  2003/07/28 21:48:39  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:57  dtynan
- * First pass at an intelligent front-end for databases.
  */
 
-#include <stdio.h>
-
-#include "dbowint.h"
+#include "dbow.h"
 
 /*
  *
  */
 int
-line_cpp(char *fname, int lno, FILE *fp)
+dbow_query(dbow_conn *conn, char *query)
 {
-	fprintf(fp, "#line %d \"%s\"\n", lno, fname);
+	printf("Query: [%s]\n", query);
+	return(mysql_query(conn, query));
 }
 
 /*
  *
  */
-int
-str_cpp(struct table *tp, FILE *fp)
+dbow_res *
+dbow_store_result(dbow_conn *conn)
 {
-	printf("Generate C++ structs for table [%s]\n", tp->name);
+	return(mysql_store_result(conn));
 }
 
 /*
  *
  */
-int
-code_cpp(struct table *tp, FILE *fp)
+dbow_row
+dbow_fetch_row(dbow_res *rsp)
 {
-	printf("Generate C++ code for table [%s]\n", tp->name);
+	return(mysql_fetch_row(rsp));
+}
+
+/*
+ *
+ */
+void
+dbow_free_result(dbow_res *rsp)
+{
+	return(mysql_free_result(rsp));
 }

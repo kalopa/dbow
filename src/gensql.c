@@ -35,17 +35,6 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.4  2003/07/29 15:17:30  dtynan
- * Lots and lots of changes.
- *
- * Revision 1.3  2003/07/28 22:19:16  dtynan
- * Added fix for multiple primary keys.
- *
- * Revision 1.2  2003/07/28 21:48:40  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:58  dtynan
- * First pass at an intelligent front-end for databases.
  */
 
 #include <stdio.h>
@@ -63,7 +52,7 @@ char	*sqltypes[NTYPES] = {
  *
  */
 int
-str_sql(struct table *tp, FILE *fp)
+generatesql(struct table *tp, FILE *fp)
 {
 	int havepk;
 	struct column *cp;

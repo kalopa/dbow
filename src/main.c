@@ -35,19 +35,6 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.4  2003/07/29 15:17:30  dtynan
- * Lots and lots of changes.
- *
- * Revision 1.3  2003/07/28 23:44:59  dtynan
- * Fixed a bug with the separate include file not being invoked for a split
- * generation.  Also made sure that dbow.h only got invoked once.  Fixed a
- * problem with type 'char[]' which can't be assigned.
- *
- * Revision 1.2  2003/07/28 21:48:40  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:58  dtynan
- * First pass at an intelligent front-end for databases.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,7 +47,6 @@
 
 void	usage();
 
-char	tmpfname[256];
 char	*fofile;
 char	*hofile;
 
@@ -74,18 +60,18 @@ extern	char	*optarg;
 int
 main(int argc, char *argv[])
 {
-	int i, nflag = 0;
+	int i;
+	char tmpfname[256];
 	char *cp, *ifile;
 	FILE *fp;
 
-	prefix = "db_";
-	opterr = 0;
+	opterr = nflag = mflag = 0;
 	active = NULL;
 	fofile = hofile = NULL;
 	/*
 	 * Deal with the command-line options.
 	 */
-	while ((i = getopt(argc, argv, "h:t:p:o:xN")) != -1) {
+	while ((i = getopt(argc, argv, "h:t:o:xNm")) != -1) {
 		switch (i) {
 		case 'h':
 			hofile = optarg;
@@ -98,10 +84,6 @@ main(int argc, char *argv[])
 			}
 			break;
 
-		case 'p':
-			prefix = optarg;
-			break;
-
 		case 'o':
 			fofile = optarg;
 			break;
@@ -110,6 +92,10 @@ main(int argc, char *argv[])
 			yydebug = 1;
 			break;
 #endif
+		case 'm':
+			mflag = 1;
+			break;
+
 		case 'N':
 			nflag = 1;
 			break;
@@ -126,8 +112,6 @@ main(int argc, char *argv[])
 		fprintf(stderr, "dbow: can't find default generator type.\n");
 		exit(1);
 	}
-	if (nflag)
-		active->gensync = NULL;
 	/*
 	 * Make sure we have an input file, and call the lexical
 	 * analyzer to open it.  Report an error if that doesn't work.
@@ -153,58 +137,47 @@ main(int argc, char *argv[])
 		} else
 			cp = strchr(tmpfname, '\0');
 		*cp++ = '.';
-		strcpy(cp, active->fext);
-		fofile = strdup(tmpfname);
+		if (mflag)
+			strcpy(cp, "m4");
+		else
+			strcpy(cp, active->fext);
+		if ((cp = strrchr(tmpfname, '/')) != NULL)
+			cp++;
+		else
+			cp = tmpfname;
+		fofile = strdup(cp);
 	}
 	/*
-	 * If the output file is '-', then emit the generated code to
-	 * stdout, otherwise open the output file for writing.
+	 * Open the pipe to the M4 command.
 	 */
-	if (strcmp(fofile, "-") == 0)
-		fofp = stdout;
-	else if ((fofp = fopen(fofile, "w")) == NULL) {
-		fprintf(stderr, "dbow: ");
-		perror(fofile);
-		exit(1);
-	}
-	if (active->gensync != NULL)
-		active->gensync(ifile, 1, fofp);
+	if (mflag) {
+		if (strcmp(fofile, "-") == 0)
+			fofp = stdout;
+		else if ((fofp = fopen(fofile, "w")) == NULL) {
+			fprintf(stderr, "dbow: cannot open file for writing: ");
+			perror(fofile);
+			exit(1);
+		}
+		hofile = NULL;
+	} else
+		fofp = m4open(fofile, active);
+	genprolog(ifile, fofp);
+	if (!nflag)
+		gensync(ifile, 1, fofp);
 	if (hofile == NULL)
 		hofp = fofp;
 	else {
-		if ((hofp = fopen(hofile, "w")) == NULL) {
-			fprintf(stderr, "dbow: ");
-			perror(hofile);
-			exit(1);
-		}
-		if (active->gensync != NULL)
-			active->gensync(ifile, 1, hofp);
-	}
-	/*
-	 * Emit the prolog code.
-	 */
-	if (active->prolog != NULL) {
-		sprintf(tmpfname, "%s/%s", DBOW, active->prolog);
-		if ((fp = fopen(tmpfname, "r")) != NULL) {
-			if (active->gensync != NULL) {
-				active->gensync(tmpfname, 1, fofp);
-				if (hofp != fofp)
-					active->gensync(tmpfname, 1, hofp);
-			}
-			while ((i = fgetc(fp)) != EOF) {
-				fputc(i, fofp);
-				if (hofp != fofp)
-					fputc(i, hofp);
-			}
-			fclose(fp);
-		}
+		hofp = m4open(hofile, active);
+		genprolog(ifile, hofp);
+		if (!nflag)
+			gensync(ifile, 1, hofp);
 	}
 	/*
 	 * If we've diverted the prolog to a separate file, then
 	 * we'll need to include it in the main file.
 	 */
-	if (hofile != NULL)
-		fprintf(fofp, "#include \"%s\"\n", hofile);
+	if (fofp != hofp)
+		geninclude(hofile, fofp);
 	/*
 	 * Parse the input file using YACC and close the input stream.
 	 * If there are no errors, call each table generator.
@@ -218,32 +191,17 @@ main(int argc, char *argv[])
 		/*
 		 * Emit the epilog code.
 		 */
-		if (active->epilog != NULL) {
-			sprintf(tmpfname, "%s/%s", DBOW, active->epilog);
-			if ((fp = fopen(tmpfname, "r")) != NULL) {
-				if (active->gensync != NULL) {
-					active->gensync(tmpfname, 1, fofp);
-					if (hofp != fofp)
-						active->gensync(tmpfname, 1, hofp);
-				}
-				while ((i = fgetc(fp)) != EOF) {
-					fputc(i, fofp);
-					if (hofp != fofp)
-						fputc(i, hofp);
-				}
-				fclose(fp);
-			}
-		}
+		genepilog(fofp);
+		if (hofp != fofp)
+			genepilog(hofp);
 	}
 	/*
 	 * Close out the output file (and delete it if it's bad),
 	 * then exit.
 	 */
-	if (fofp != stdout) {
-		fclose(fofp);
-		if (nerrors)
-			unlink(fofile);
-	}
+	pclose(fofp);
+	if (hofp != fofp)
+		pclose(hofp);
 	exit(nerrors > 0 ? 1 : 0);
 }
 
@@ -263,14 +221,14 @@ genfuncname(struct table *tp, char *cname, char *fname, int type)
 		return;
 	}
 	switch (type) {
-	case ACTION_INSERT:
+	case DBOW_INSERT:
 		if (tp->ifname != NULL) {
 			yyerror("multiple insert definitions for table");
 			return;
 		}
 		xp = "insert";
 		break;
-	case ACTION_DELETE:
+	case DBOW_DELETE:
 		if (cp == NULL)
 			return;
 		if (cp->dfname != NULL) {
@@ -279,7 +237,7 @@ genfuncname(struct table *tp, char *cname, char *fname, int type)
 		}
 		xp = "delete";
 		break;
-	case ACTION_SEARCH:
+	case DBOW_SEARCH:
 		if (cp == NULL)
 			return;
 		if (cp->sfname != NULL) {
@@ -288,7 +246,7 @@ genfuncname(struct table *tp, char *cname, char *fname, int type)
 		}
 		xp = "find";
 		break;
-	case ACTION_UPDATE:
+	case DBOW_UPDATE:
 		if (cp == NULL)
 			return;
 		if (cp->ufname != NULL) {
@@ -299,24 +257,24 @@ genfuncname(struct table *tp, char *cname, char *fname, int type)
 		break;
 	}
 	if (fname == NULL) {
-		if (type != ACTION_INSERT)
-			sprintf(tmp, "%s%s%sby%s",prefix,xp,tp->name,cp->name);
+		if (type != DBOW_INSERT)
+			sprintf(tmp, "db_%s%sby%s", xp, tp->name, cp->name);
 		else
-			sprintf(tmp, "%s%s%s",prefix,xp,tp->name);
+			sprintf(tmp, "db_%s%s", xp, tp->name);
 		xp = tmp;
 	} else
 		xp = fname;
 	switch (type) {
-	case ACTION_INSERT:
+	case DBOW_INSERT:
 		tp->ifname = strdup(xp);
 		break;
-	case ACTION_DELETE:
+	case DBOW_DELETE:
 		cp->dfname = strdup(xp);
 		break;
-	case ACTION_SEARCH:
+	case DBOW_SEARCH:
 		cp->sfname = strdup(xp);
 		break;
-	case ACTION_UPDATE:
+	case DBOW_UPDATE:
 		cp->ufname = strdup(xp);
 		break;
 	}
@@ -345,19 +303,17 @@ doproto(char *fname, int lineno)
 		 * We always need an insert function.
 		 */
 		if (tp->ifname == NULL)
-			genfuncname(tp, NULL, NULL, ACTION_INSERT);
+			genfuncname(tp, NULL, NULL, DBOW_INSERT);
 	}
 	/*
 	 * Now call the code-specific prototype generator for each table.
 	 */
-	if (active->gensync != NULL && lineno > 0)
-		active->gensync(fname, lineno, hofp);
-	if (active->genstr != NULL) {
-		tp = getnexttable(NULL);
-		while (tp != NULL) {
-			active->genstr(tp, hofp);
-			tp = getnexttable(tp);
-		}
+	if (!nflag && lineno > 0)
+		gensync(fname, lineno, hofp);
+	tp = getnexttable(NULL);
+	while (tp != NULL) {
+		genstr(tp, hofp);
+		tp = getnexttable(tp);
 	}
 }
 
@@ -379,14 +335,12 @@ docode(char *fname, int lineno)
 	/*
 	 * Call the code-specific generator for each table.
 	 */
-	if (active->gensync != NULL && lineno > 0)
-		active->gensync(fname, lineno, fofp);
-	if (active->gencode != NULL) {
-		tp = getnexttable(NULL);
-		while (tp != NULL) {
-			active->gencode(tp, fofp);
-			tp = getnexttable(tp);
-		}
+	if (!nflag && lineno > 0)
+		gensync(fname, lineno, fofp);
+	tp = getnexttable(NULL);
+	while (tp != NULL) {
+		gencode(tp, fofp);
+		tp = getnexttable(tp);
 	}
 }
 
@@ -396,6 +350,6 @@ docode(char *fname, int lineno)
 void
 usage()
 {
-	fprintf(stderr, "Usage: dbow [-t type][-p prefix][-h file][-o file][-N] file\n");
+	fprintf(stderr, "Usage: dbow [-Nhm][-t type][-o file] file\n");
 	exit(2);
 }

@@ -35,31 +35,24 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.2  2003/07/28 21:48:38  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:56  dtynan
- * First pass at an intelligent front-end for databases.
  */
-
-#include <stdio.h>
 
 #include "dbow.h"
 
 /*
  *
  */
-int
-dbow_fint(dbow_row row, int pos)
+double
+dbow_fdouble(dbow_row row, int pos)
 {
-	return((row[pos] == NULL) ? 0 : atoi(row[pos]));
+	return((row[pos] == NULL) ? 0.0 : atof(row[pos]));
 }
 
 /*
  *
  */
 int
-dbow_iint(char *cp, int val, int len)
+dbow_idouble(int type, char *cp, double val, int len)
 {
 	int i = strlen(cp);
 
@@ -67,7 +60,7 @@ dbow_iint(char *cp, int val, int len)
 	len -= i;
 	if (len < 11)
 		return(-1);
-	sprintf(cp, "%d,", val);
+	sprintf(cp, "%lf,", val);
 	i += strlen(cp);
 	return(i);
 }

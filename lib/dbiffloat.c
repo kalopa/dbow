@@ -35,31 +35,6 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.2  2003/07/28 21:48:39  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:57  dtynan
- * First pass at an intelligent front-end for databases.
  */
 
-#include <stdio.h>
-
-#include "dbowint.h"
-
-/*
- *
- */
-int
-str_perl(struct table *tp, FILE *fp)
-{
-	printf("Generate Perl structs for table [%s]\n", tp->name);
-}
-
-/*
- *
- */
-int
-code_perl(struct table *tp, FILE *fp)
-{
-	printf("Generate Perl code for table [%s]\n", tp->name);
-}
+#include "dbow.h"

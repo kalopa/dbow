@@ -35,64 +35,6 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.3  2003/07/29 00:30:03  dtynan
- * Lots of changes.
- *
- * Revision 1.2  2003/07/28 21:48:37  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:55  dtynan
- * First pass at an intelligent front-end for databases.
  */
-
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
 
 #include "dbow.h"
-
-/*
- *
- */
-int
-dbow_fdate(dbow_row row, int pos)
-{
-	char *cp, datestr[12];
-	struct tm tm;
-
-	if (row[pos] == NULL || strlen(row[pos]) != 10)
-		return(0);
-	strcpy(datestr, row[pos]);
-	datestr[4] = datestr[7] = '\0';
-	tm.tm_year = atoi(datestr) - 1900;
-	tm.tm_mon  = atoi(datestr + 5) - 1;
-	tm.tm_mday = atoi(datestr + 8);
-	return(mktime(&tm));
-}
-
-/*
- *
- */
-int
-dbow_idate(char *cp, int val, int len)
-{
-	int i = strlen(cp);
-	struct tm *tmp;
-
-	cp += i;
-	len -= i;
-	if (len < 11)
-		return(-1);
-	if (val == 0)
-		strcat(cp, "SYSDATE(),");
-	else {
-		if ((tmp = localtime((time_t *)&val)) == NULL)
-			return(-1);
-		sprintf(cp, "'%04d-%02d-%02d',",
-					tmp->tm_year + 1900,
-					tmp->tm_mon + 1,
-					tmp->tm_mday);
-	}
-	i += strlen(cp);
-	return(i);
-}

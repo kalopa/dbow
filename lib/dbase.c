@@ -35,11 +35,6 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.2  2003/07/28 21:48:37  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:55  dtynan
- * First pass at an intelligent front-end for databases.
  */
 
 #include <stdio.h>
@@ -50,12 +45,12 @@
  *
  */
 dbow_conn *
-dbow_init(char *user, char *pwd, char *dbase)
+dbow_init(char *host, char *user, char *pwd, char *dbase)
 {
 	dbow_conn *conn;
 
 	if ((conn = mysql_init(NULL)) == NULL || mysql_real_connect(conn,
-				NULL, user, pwd, dbase, 0, NULL, 0) == NULL) {
+				host, user, pwd, dbase, 0, NULL, 0) == NULL) {
 		return(NULL);
 	}
 	return(conn);

@@ -35,47 +35,27 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.2  2003/07/28 21:48:39  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:57  dtynan
- * First pass at an intelligent front-end for databases.
  */
+
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "dbow.h"
 
 /*
  *
  */
-int
-dbow_query(dbow_conn *conn, char *query)
+char *
+dbow_alloc(int size)
 {
-	return(mysql_query(conn, query));
-}
-
-/*
- *
- */
-dbow_res *
-dbow_store_result(dbow_conn *conn)
-{
-	return(mysql_store_result(conn));
-}
-
-/*
- *
- */
-dbow_row
-dbow_fetch_row(dbow_res *rsp)
-{
-	return(mysql_fetch_row(rsp));
+	return((char *)malloc(size));
 }
 
 /*
  *
  */
 void
-dbow_free_result(dbow_res *rsp)
+dbow_free(char *cp)
 {
-	return(mysql_free_result(rsp));
+	free(cp);
 }

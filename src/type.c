@@ -35,20 +35,72 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.2  2003/07/28 21:48:38  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:56  dtynan
- * First pass at an intelligent front-end for databases.
  */
 
-#include "dbow.h"
+#include <stdio.h>
+
+#include "dbowint.h"
+
+#ifndef M4DIR
+#define M4DIR	"/usr/local/share/dbow"
+#endif
+#ifndef M4BIN
+#define M4BIN	"/usr/bin/m4"
+#endif
+
+struct	type	types[] = {
+	{"c", "c.m4", "c", CDT_CODE},
+	{"c++", "c++.m4", "cpp", CDT_CODE},
+	{"perl", "perl.m4", "p", CDT_CODE},
+	{"php", "php.m4", "php", CDT_CODE},
+	{"mysql", "mysql.m4", "sql", CDT_DBASE},
+	{NULL,NULL,NULL,0}
+};
 
 /*
  *
  */
-int
-dbow_insertid(dbow_conn *conn)
+struct type *
+findtype(char *type)
 {
-	return(mysql_insert_id(conn));
+	int i;
+	struct type *tp;
+
+	for (tp = types; tp->name != NULL; tp++)
+		if (strcasecmp(type, tp->name) == 0)
+			return(tp);
+	return(NULL);
+}
+
+/*
+ *
+ */
+FILE *
+m4open(char *ofname, struct type *tp)
+{
+	int i;
+	char tmpfname[256];
+	FILE *fp, *pfp;
+
+	if (strcmp(ofname, "-") == 0)
+		strcpy(tmpfname, M4BIN);
+	else
+		sprintf(tmpfname, "%s > %s", M4BIN, ofname);
+	printf("M4: [%s]\n", tmpfname);
+	if ((pfp = popen(tmpfname, "w")) == NULL) {
+		fprintf(stderr, "dbow error: ");
+		perror(tmpfname);
+		exit(1);
+	}
+	sprintf(tmpfname, "%s/%s", M4DIR, tp->m4file);
+	printf("M4file: [%s]\n", tmpfname);
+	if ((fp = fopen(tmpfname, "r")) == NULL) {
+		fprintf(stderr, "dbow: cannot find appropriate M4 template: ");
+		perror(tmpfname);
+		exit(1);
+	}
+	while ((i = fgetc(fp)) != EOF)
+		fputc(i, pfp);
+	fclose(fp);
+	return(pfp);
 }

@@ -33,24 +33,7 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.4  2003/07/29 15:17:29  dtynan
- * Lots and lots of changes.
- *
- * Revision 1.3  2003/07/29 00:30:03  dtynan
- * Lots of changes.
- *
- * Revision 1.2  2003/07/28 21:48:39  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:56  dtynan
- * First pass at an intelligent front-end for databases.
  */
-
-#define CODE_C		0
-#define CODE_CPLUSPLUS	1
-#define CODE_PERL	2
-#define CODE_PHP	3
-#define NCODETYPES	4
 
 #define DBASE_MYSQL	0
 #define NDBASETYPES	1
@@ -124,11 +107,7 @@ struct	table	{
  */
 struct	type	{
 	char	*name;
-	char	*prolog;
-	char	*epilog;
-	int	(*gensync)(char *, int, FILE *);
-	int	(*genstr)(struct table *, FILE *);
-	int	(*gencode)(struct table *, FILE *);
+	char	*m4file;
 	char	*fext;
 	int	cdtype;
 };
@@ -137,6 +116,8 @@ struct	type	{
 #define CDT_DBASE	1
 
 int		debug;
+int		nflag;
+int		mflag;
 int		nerrors;
 char		*prefix;
 struct	type	*active;
@@ -151,9 +132,17 @@ void		docode(char *, int);
 int		lexopen(char *);
 void		lexclose();
 struct	type	*findtype(char *);
+FILE		*m4open(char *, struct type *);
 struct	table	*newtable(char *, int);
 struct	table	*findtable(char *name);
 struct	table	*getnexttable(struct table *);
 struct	column	*newcolumn(struct table *, char *, int, int, int, int);
 struct	column	*findcolumn(struct table *, char *);
 void		genfuncname(struct table *, char *, char *, int);
+int		generatesql(struct table *, FILE *);
+void		genprolog(char *, FILE *);
+void		geninclude(char *, FILE *);
+void		gensync(char *, int, FILE *);
+void		genstr(struct table *, FILE *);
+void		gencode(struct table *, FILE *);
+void		genepilog(FILE *);

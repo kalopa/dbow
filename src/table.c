@@ -35,17 +35,6 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.4  2003/07/29 15:17:30  dtynan
- * Lots and lots of changes.
- *
- * Revision 1.3  2003/07/29 00:30:04  dtynan
- * Lots of changes.
- *
- * Revision 1.2  2003/07/28 21:48:40  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:59  dtynan
- * First pass at an intelligent front-end for databases.
  */
 
 #include <stdio.h>

@@ -35,14 +35,6 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.3  2003/07/29 15:17:29  dtynan
- * Lots and lots of changes.
- *
- * Revision 1.2  2003/07/28 21:48:37  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:55  dtynan
- * First pass at an intelligent front-end for databases.
  */
 
 #include <string.h>
@@ -62,7 +54,94 @@ dbow_fchar(dbow_row row, int pos)
  *
  */
 int
-dbow_ichar(char *cp, char *val, int len)
+dbow_ichar(int type, char *cp, char *val, int len)
+{
+	int i = strlen(cp);
+
+	printf("CHR:type=%d, cp = [%s], val=[%s], len=%d\n", type, cp, val, len);
+	cp += i;
+	len -= i;
+	if (i > 0) {
+		switch (type) {
+		case DBOW_INSERT:
+			if (cp[-1] == ')') {
+				cp--;
+				*cp++ = ',';
+			}
+			break;
+
+		case DBOW_OTHER:
+			if (cp[-1] == '\'') {
+				strcpy(cp, " AND");
+				len -= 4;
+				i += 4;
+				cp += 4;
+			}
+
+		default:
+			*cp++ = ' ';
+			len--;
+			i++;
+			break;
+		}
+	}
+	if (val == NULL) {
+		if (len < 4)
+			return(-1);
+		strcpy(cp, "NULL");
+		i += 4;
+	} else {
+		if (type != DBOW_OTHER) {
+			*cp++ = '\'';
+			len--;
+			i++;
+		}
+		while (*val != '\0' && len > 0) {
+			if (*val == '\'' || *val == '\\') {
+				if (len < 2)
+					return(-1);
+				*cp++ = '\\';
+				len--;
+				i++;
+			}
+			*cp++ = *val++;
+			len--;
+			i++;
+		}
+		if (type != DBOW_OTHER) {
+			*cp++ = '\'';
+			len--;
+			i++;
+		}
+	}
+	if (len < 2)
+		return(-1);
+	if (type == DBOW_INSERT) {
+		*cp++ = ')';
+		i++;
+	}
+	*cp = '\0';
+	printf("Returned.\n");
+	return(i);
+}
+
+/*
+ *
+ */
+void
+dbow_fchrs(char *cp, dbow_row row, int pos)
+{
+	if (row[pos] == NULL)
+		*cp = '\0';
+	else
+		strcpy(cp, row[pos]);
+}
+
+/*
+ *
+ */
+int
+dbow_ichrs(int type, char *cp, char *val, int len)
 {
 	int i = strlen(cp);
 
