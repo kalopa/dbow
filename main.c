@@ -35,6 +35,8 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/07/28 21:31:58  dtynan
+ * First pass at an intelligent front-end for databases.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -146,12 +148,18 @@ main(int argc, char *argv[])
 		perror(fofile);
 		exit(1);
 	}
+	if (active->gensync != NULL)
+		active->gensync(fofile, 1, fofp);
 	if (hofile == NULL)
 		hofp = fofp;
-	else if ((hofp = fopen(hofile, "w")) == NULL) {
-		fprintf(stderr, "dbow: ");
-		perror(hofile);
-		exit(1);
+	else {
+		if ((hofp = fopen(hofile, "w")) == NULL) {
+			fprintf(stderr, "dbow: ");
+			perror(hofile);
+			exit(1);
+		}
+		if (active->gensync != NULL)
+			active->gensync(hofile, 1, hofp);
 	}
 	/*
 	 * Emit the prolog code.

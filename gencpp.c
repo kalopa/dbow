@@ -35,6 +35,8 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/07/28 21:31:57  dtynan
+ * First pass at an intelligent front-end for databases.
  */
 
 #include <stdio.h>
@@ -47,7 +49,7 @@
 int
 line_cpp(char *fname, int lno, FILE *fp)
 {
-	fprintf(fp, "#line %d \"%s\"\n", lno + 1, fname);
+	fprintf(fp, "#line %d \"%s\"\n", lno, fname);
 }
 
 /*

@@ -36,6 +36,8 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/07/28 21:31:58  dtynan
+ * First pass at an intelligent front-end for databases.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -107,7 +109,7 @@ emit_stmnt:	  EMIT ident '{'
 			if (tp == active)
 				show = 1;
 			if (active->gensync != NULL)
-				active->gensync(filename, lineno, fofp);
+				active->gensync(filename, lineno + 1, fofp);
 			while (lexline() != EOF) {
 				if (strcmp(input, "%}") == 0)
 					break;
@@ -118,7 +120,7 @@ emit_stmnt:	  EMIT ident '{'
 		| EMIT '{'
 		{
 			if (active->gensync != NULL)
-				active->gensync(filename, lineno, fofp);
+				active->gensync(filename, lineno + 1, fofp);
 			while (lexline() != EOF) {
 				if (strcmp(input, "%}") == 0)
 					break;

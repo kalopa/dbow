@@ -33,6 +33,8 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/07/28 21:31:56  dtynan
+ * First pass at an intelligent front-end for databases.
  */
 
 #include "mysql.h"

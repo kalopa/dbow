@@ -35,6 +35,8 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/07/28 21:31:57  dtynan
+ * First pass at an intelligent front-end for databases.
  */
 
 #include <stdio.h>
@@ -74,7 +76,7 @@ cdef(struct column *cp)
 void
 gencsearch(struct table *tp, struct column *cp, FILE *fp)
 {
-	fprintf(fp, "\nstruct %s *\n%sget%sby%s(", tp->pfx, prefix,
+	fprintf(fp, "\nstruct %s *\n%sfind%sby%s(", tp->pfx, prefix,
 						tp->name, cp->name);
 	fprintf(fp, "dbow_conn *c, %s %s)\n{\n", cdef(cp), cp->name);
 	fprintf(fp, "\tstruct %s *p = NULL;\n", tp->pfx);
@@ -99,7 +101,7 @@ gencsearch(struct table *tp, struct column *cp, FILE *fp)
 int
 line_c(char *fname, int lno, FILE *fp)
 {
-	fprintf(fp, "#line %d \"%s\"\n", lno + 1, fname);
+	fprintf(fp, "#line %d \"%s\"\n", lno, fname);
 }
 
 /*
@@ -126,7 +128,7 @@ str_c(struct table *tp, FILE *fp)
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
 		if ((cp->flags & FLAG_SEARCH) == 0)
 			continue;
-		fprintf(fp, "struct %s\t*%sget%sby%s(", tp->pfx, prefix,
+		fprintf(fp, "struct %s\t*%sfind%sby%s(", tp->pfx, prefix,
 							tp->name, cp->name);
 		fprintf(fp, "dbow_conn *, %s);\n", cdef(cp));
 	}

@@ -35,6 +35,8 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/07/28 21:31:57  dtynan
+ * First pass at an intelligent front-end for databases.
  */
 
 #include <stdio.h>

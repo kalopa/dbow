@@ -44,6 +44,9 @@
 #	country_id	A link to the country table for the home country
 #
 # $Log$
+# Revision 1.1  2003/07/28 21:31:59  dtynan
+# First pass at an intelligent front-end for databases.
+#
 # Revision 1.4  2003/02/27 11:40:16  dtynan
 # Changed data to use fictitious club so as not to stomp on the GBSC
 # data, and added table comments to the SQL files to explain the field
@@ -110,7 +113,7 @@ main()
 		exit(1);
 	}
 	for (i = 0; i < 10; i++)
-		if ((p = db_getclubbyclub_id(conn, i)) != NULL)
+		if ((p = db_findclubbyclub_id(conn, i)) != NULL)
 			dumpclub(p);
 #if 0
 	p->club_id = dbow_fint(row, 0);

@@ -33,6 +33,8 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.1  2003/07/28 21:31:54  dtynan
+# First pass at an intelligent front-end for databases.
 #
 MYSQL_INC=/usr/local/include/mysql
 MYSQL_LIB=/usr/local/lib/mysql
