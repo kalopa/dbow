@@ -36,6 +36,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/07/28 21:48:40  dtynan
+ * Minor tweaks, including fixing some gensync issues.
+ *
  * Revision 1.1  2003/07/28 21:31:58  dtynan
  * First pass at an intelligent front-end for databases.
  */
@@ -130,6 +133,16 @@ emit_stmnt:	  EMIT ident '{'
 		;
 
 table_stmnt:	  TABLE ntname '{' table_defs  ENDDEF
+		{
+			int sawpk = 0;
+			struct column *cp;
+
+			for (cp = $2->chead; cp != NULL; cp = cp->next)
+				if (cp->flags & FLAG_PRIKEY)
+					sawpk = 1;
+			if (!sawpk)
+				yyerror("no primary key defined in table");
+		}
 		;
 
 search_stmnt:	  SEARCH otname ident
