@@ -33,9 +33,17 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/07/28 21:48:39  dtynan
+ * Minor tweaks, including fixing some gensync issues.
+ *
  * Revision 1.1  2003/07/28 21:31:56  dtynan
  * First pass at an intelligent front-end for databases.
  */
+#ifndef	_DBOW_H_
+#define	_DBOW_H_
+
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "mysql.h"
 
@@ -64,3 +72,5 @@ int		dbow_insertid(dbow_conn *);
 dbow_res	*dbow_store_result(dbow_conn *);
 dbow_row	dbow_fetch_row(dbow_res *);
 void		dbow_free_result(dbow_res *);
+
+#endif /* !_DBOW_H_ */

@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/07/28 21:48:39  dtynan
+ * Minor tweaks, including fixing some gensync issues.
+ *
  * Revision 1.1  2003/07/28 21:31:57  dtynan
  * First pass at an intelligent front-end for databases.
  */
@@ -146,8 +149,13 @@ code_c(struct table *tp, FILE *fp)
 	fprintf(fp, "\nstatic void\n_dbfill_%s(dbow_row row, ", tp->name);
 	fprintf(fp, "struct %s *p)\n{\n", tp->pfx);
 	for (i = 0, cp = tp->chead; cp != NULL; i++, cp = cp->next) {
-		fprintf(fp, "\tp->%s = dbow_f%s(row, %d);\n",
+		if (cp->type == TYPE_CHAR) {
+			fprintf(fp, "\tdb_fchrs(p->%s, row, %d);\n",
+					cp->name, i);
+		} else {
+			fprintf(fp, "\tp->%s = dbow_f%s(row, %d);\n",
 					cp->name, ftypes[cp->type], i);
+		}
 	}
 	fprintf(fp, "}\n\n");
 

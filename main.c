@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/07/28 21:48:40  dtynan
+ * Minor tweaks, including fixing some gensync issues.
+ *
  * Revision 1.1  2003/07/28 21:31:58  dtynan
  * First pass at an intelligent front-end for databases.
  */
@@ -175,6 +178,12 @@ main(int argc, char *argv[])
 			fclose(fp);
 		}
 	}
+	/*
+	 * If we've diverted the prolog to a separate file, then
+	 * we'll need to include it in the main file.
+	 */
+	if (hofile != NULL)
+		fprintf(fofp, "#include \"%s\"\n", hofile);
 	/*
 	 * Parse the input file using YACC and close the input stream.
 	 * If there are no errors, call each table generator.
