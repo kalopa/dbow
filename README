@@ -1,0 +1,11 @@
+# DBOW
+
+This thing produces standard "class files" for C, C++, Perl,
+PHP and so on.  Not to mention the SQL table definitions.
+
+Instead of defining a .sql file with the table information,
+you define it in DBOW instead.  Run one option and DBOW will
+produce the SQL table creation (for MySQL or whatever), run
+another option and it will produce C source code to access
+the database, fill a matching struct with the data and so
+on.
