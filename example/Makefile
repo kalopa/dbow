@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.3  2003/11/17 13:15:16  dtynan
+# Various changes to fix errors in the back-end code.
+#
 # Revision 1.2  2003/10/14 14:10:56  dtynan
 # Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
 # reduce blank lines in the output.
@@ -65,9 +68,9 @@ sample: sample.o
 	../src/dbow -t mysql -o $@ $<
 
 .d.c:	
-	../src/dbow -t C -h $*.h -o $@ $<
+	../src/dbow -t C -o $@ $<
 
 .d.o:	
-	../src/dbow -t C -h $*.h -o $*.c $<
+	../src/dbow -t C -o $*.c $<
 	$(CC) $(CFLAGS) -c $*.c
 	rm -f $*.c
