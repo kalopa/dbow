@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/07/28 21:48:40  dtynan
+ * Minor tweaks, including fixing some gensync issues.
+ *
  * Revision 1.1  2003/07/28 21:31:58  dtynan
  * First pass at an intelligent front-end for databases.
  */
@@ -56,9 +59,9 @@ char	*sqltypes[NTYPES] = {
 int
 str_sql(struct table *tp, FILE *fp)
 {
+	int havepk;
 	struct column *cp;
 
-	printf("Generate SQL for table [%s]\n", tp->name);
 	fprintf(fp, "\nDROP TABLE IF EXISTS %s;\n", tp->name);
 	fprintf(fp, "\nCREATE TABLE %s\n(\n", tp->name);
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
@@ -73,13 +76,25 @@ str_sql(struct table *tp, FILE *fp)
 			fprintf(fp, " UNSIGNED");
 		if (cp->flags & FLAG_NOTNULL)
 			fprintf(fp, " NOT NULL");
-		if (cp->flags & FLAG_PRIKEY)
-			fprintf(fp, " PRIMARY KEY");
+		if (cp->flags & FLAG_UNIQUE)
+			fprintf(fp, " UNIQUE");
 		if (cp->flags & FLAG_AUTOINC)
 			fprintf(fp, " AUTO_INCREMENT");
-		if (cp->next != NULL)
-			fputc(',', fp);
-		fputc('\n', fp);
+		fprintf(fp, ",\n");
 	}
+	havepk = 0;
+	for (cp = tp->chead; cp != NULL; cp = cp->next) {
+		if ((cp->flags & FLAG_PRIKEY) == 0)
+			continue;
+		if (havepk == 0) {
+			fprintf(fp, "\tCONSTRAINT PK_%s ", tp->name);
+			fprintf(fp, "PRIMARY KEY (%s", cp->name);
+			havepk = 1;
+		} else {
+			fprintf(fp, ", %s", cp->name);
+		}
+	}
+	if (havepk)
+		fprintf(fp, ")\n");
 	fprintf(fp, ");\n");
 }
