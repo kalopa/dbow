@@ -34,6 +34,9 @@ dnl
 dnl ABSTRACT
 dnl
 dnl $Log$
+dnl Revision 1.6  2004/01/28 18:57:58  dtynan
+dnl Fixed another couple of minor gotcha's.
+dnl
 dnl Revision 1.5  2004/01/28 13:48:08  dtynan
 dnl Updated as per new mechanisms.
 dnl
@@ -369,6 +372,8 @@ forloop(i,0,STR_$1_NELEM0,`PTYPE($1,i)
 
 divert(0)dnl
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "dbow.h"
 
