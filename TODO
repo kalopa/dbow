@@ -30,6 +30,3 @@ language merely by defining the SQL query.  As yet, this is
 undeveloped.  Adding stuff to deal with SELECT order would be nice
 too.
 
-The new M4 back-end needs some tweaking.  The code to produce SQL isn't
-great because of the flags.  It needs some loops or equivalent to
-build tables instead of multiple *_ELEMENT lines.

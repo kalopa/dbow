@@ -3,3 +3,10 @@
 	* Extensive hacking to make the back-end use M4 instead of hard-coding
 	  the output with printfs.
 
+2004-01-28  dtynan  <dtynan@kalopa.com>
+
+	* Modified the M4 back-end so that it uses looping rather than relying
+	  on the front-end compiler to produce per-table fields.  This makes
+	  the intermediate code cleaner and makes it a lot easier to write
+	  advanced back-ends.  SQL is still hard-coded.
+
