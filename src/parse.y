@@ -36,6 +36,12 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2004/01/26 23:43:21  dtynan
+ * Extensive changes to fix some M4 issues and some library issues.
+ * Removed many of the functions which were used to parse data types
+ * and made them inline instead.  Improved the M4 generator by adding
+ * for loops.
+ *
  * Revision 1.2  2003/11/17 13:15:20  dtynan
  * Various changes to fix errors in the back-end code.
  *
@@ -115,12 +121,15 @@ emit_stmnt:	  PCENT opttype KW_EMIT '{'
 		{
 			int show = $2;
 
-			linesync(filename, lineno + 1, fofp);
+			if (tofp == NULL && gentmpf() < 0)
+				show = 0;
+			else
+				linesync(filename, lineno + 1, tofp);
 			while (lexline() != EOF) {
 				if (strcmp(input, "%}") == 0)
 					break;
 				if (show)
-					fprintf(fofp, "%s\n", input);
+					fprintf(tofp, "%s\n", input);
 			}
 		}
 		;

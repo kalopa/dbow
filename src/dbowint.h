@@ -33,6 +33,12 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2004/01/26 23:43:21  dtynan
+ * Extensive changes to fix some M4 issues and some library issues.
+ * Removed many of the functions which were used to parse data types
+ * and made them inline instead.  Improved the M4 generator by adding
+ * for loops.
+ *
  * Revision 1.2  2003/11/17 13:15:20  dtynan
  * Various changes to fix errors in the back-end code.
  *
@@ -129,7 +135,7 @@ int		mflag;
 int		nerrors;
 char		*prefix;
 struct	type	*active;
-FILE		*fofp, *hofp;
+FILE		*fofp, *hofp, *tofp;
 
 #ifdef YYDEBUG
 extern	int	yydebug;
@@ -151,9 +157,12 @@ struct	column	*newcolumn(struct table *, char *, int, int, int, int);
 struct	column	*findcolumn(struct table *, char *);
 void		genfuncname(struct table *, char *, char *, int);
 void		generatesql(struct table *, FILE *);
+void		genprolog(char *, FILE *);
 void		gendefs(struct table *, char *, FILE *);
 void		genstr(struct table *, FILE *);
 void		gencode(struct table *, FILE *);
+void		genmidsect(char *, FILE *);
 void		genepilog(FILE *);
 int		yyparse();
 void		yyerror(const char *);
+int		gentmpf();

@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.5  2004/01/28 13:53:17  dtynan
+ * Minor bug fixes and modifications prior to new release 0.3
+ *
  * Revision 1.4  2004/01/26 23:43:21  dtynan
  * Extensive changes to fix some M4 issues and some library issues.
  * Removed many of the functions which were used to parse data types
@@ -65,6 +68,7 @@ void	usage();
 
 char	*fofile;
 char	*hofile;
+char	*tofile;
 
 extern	int	optind;
 extern	int	opterr;
@@ -184,6 +188,7 @@ main(int argc, char *argv[])
 		hofp = m4open(hofile, active);
 		linesync(ifile, 1, hofp);
 	}
+	tofp = NULL;
 	/*
 	 * Parse the input file using YACC and close the input stream.
 	 * If there are no errors, call each table generator.
@@ -206,6 +211,15 @@ main(int argc, char *argv[])
 		genepilog(fofp);
 		if (hofp != fofp)
 			genepilog(hofp);
+		if (tofp != NULL) {
+			fclose(tofp);
+			if ((tofp = fopen(tofile, "r")) != NULL) {
+				while ((i = fgetc(tofp)) != EOF)
+					fputc(i, fofp);
+				fclose(tofp);
+			}
+			unlink(tofile);
+		}
 	}
 	/*
 	 * Close out the output file (and delete it if it's bad),
@@ -312,6 +326,9 @@ doproto(char *fname, int lineno)
 	/*
 	 * Do any table optimizations here...
 	 */
+	genprolog(fname, fofp);
+	if (hofp != fofp)
+		genprolog(fname, hofp);
 	for (tp = getnexttable(NULL); tp != NULL; tp = getnexttable(tp)) {
 		/*
 		 * We always need an insert function.
@@ -367,6 +384,12 @@ doproto(char *fname, int lineno)
 			gendefs(tp, hofile, hofp);
 	}
 	/*
+	 * Generate the middle section, including the "m4 include"...
+	 */
+	genmidsect(fname, fofp);
+	if (hofp != fofp)
+		genmidsect(fname, hofp);
+	/*
 	 * Now call the code-specific prototype generator for each table.
 	 */
 	if (lineno > 0)
@@ -403,6 +426,19 @@ docode(char *fname, int lineno)
 		gencode(tp, fofp);
 		tp = getnexttable(tp);
 	}
+}
+
+/*
+ *
+ */
+int
+gentmpf()
+{
+	if ((tofile = strdup("/tmp/dbowXXXXXX")) == NULL)
+		return(-1);
+	if (mkstemp(tofile) < 0)
+		return(-1);
+	return((tofp = fopen(tofile, "w")) == NULL ? -1 : 0);
 }
 
 /*
