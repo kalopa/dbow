@@ -36,6 +36,18 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.4  2004/04/30 12:12:25  dtynan
+ * Lots of changes for minor bug fixes, added functionality and the like.
+ * Notably the following:
+ *     o	Added a 'db_findXXXfirst()' function for searching the entired
+ * 	table.
+ *     o	Added a 'db_runXXXquery()' function which will run an SQL
+ * 	statement (without parsing any arguments) and return the
+ * 	first match.
+ *     o	Fixed a bug where the include() m4 statement was being used
+ * 	more than once.
+ *     o	Put the 'EMIT' code at the bottom of the output file.
+ *
  * Revision 1.3  2004/01/26 23:43:21  dtynan
  * Extensive changes to fix some M4 issues and some library issues.
  * Removed many of the functions which were used to parse data types
@@ -93,7 +105,7 @@ FILE		*fp;
 %term	KW_TINYBLOB KW_TINYINT KW_TINYTEXT KW_UNIQUE KW_UNSIGNED KW_VARCHAR
 %term	KW_YEAR
 
-%term	',' '(' ')' '{' '}'
+%term	',' '(' ')' '{' '}' '/'
 
 %type	<nval>	class opttype optquals optqual
 %type	<sval>	ident
@@ -107,17 +119,35 @@ dbow_file:	  /* Empty statement */
 
 dbow_stmnt:	  emit_stmnt
 		| table_stmnt
+		| function_stmnt
 		| insert_stmnt
 		| delete_stmnt
 		| search_stmnt
 		| update_stmnt
-		| function_stmnt
 		| dump_stmnt
-		| proto_stmnt
-		| code_stmnt
 		;
 
-emit_stmnt:	  PCENT opttype KW_EMIT '{'
+emit_stmnt:	  PCENT opttype KW_CODE '{'
+		{
+			linesync(filename, lineno + 1, fofp);
+			while (lexline() != EOF) {
+				if (strcmp(input, "%}") == 0)
+					break;
+				if ($2)
+					fprintf(fofp, "%s\n", input);
+			}
+		}
+		| PCENT opttype KW_PROTO '{'
+		{
+			linesync(filename, lineno + 1, hofp);
+			while (lexline() != EOF) {
+				if (strcmp(input, "%}") == 0)
+					break;
+				if ($2)
+					fprintf(hofp, "%s\n", input);
+			}
+		}
+		| PCENT opttype KW_EMIT '{'
 		{
 			int show = $2;
 
@@ -214,18 +244,6 @@ dump_stmnt:	  PCENT opttype KW_DUMP otname
 		{
 			if ($2)
 				$4->flags |= FLAG_DUMP;
-		}
-		;
-
-proto_stmnt:	  PCENT KW_PROTO
-		{
-			doproto(filename, lineno);
-		}
-		;
-
-code_stmnt:	  PCENT KW_CODE
-		{
-			docode(filename, lineno);
 		}
 		;
 
@@ -704,6 +722,7 @@ yylex()
 	case ')':
 	case '{':
 	case '}':
+	case '/':
 		/*
 		 * A special character - just return it as-is.
 		 */

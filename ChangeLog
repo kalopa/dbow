@@ -1,3 +1,28 @@
+DBOW is a database compiler-compiler or front-end.  It takes table
+definitions in a relatively high-level language and prepares C,
+C++, PHP, Perl (etc) functions for manipulating the database.  It
+will also produce SQL table data for MySQL.
+
+DBOW allows a user to define a database table in a meta-language
+and produce SQL for generating the table.  It also provides C, C++,
+PHP, Perl functions or methods for manipulating the table, such as
+insert/delete/search/update.  The system is used to remove the
+grunt-work of writing class libraries or access functions for
+database tables and having to update several different source files
+if the SQL table format should change.  The resultant code provides
+a language-native mechanism for manipulating the database.
+
+Currently it supports C, C++, SQL and PHP (with Perl under way).
+It will be extended to support other languages and database constructs
+as required. It currently compiles/runs on FreeBSD/Linux.  It doesn't
+require any other libraries or elements except YACC/Bison.
+
+2003-08-07  dtynan  <dtynan@kalopa.com>
+
+	* This version has support for C and SQL with the basics
+	  of PHP support.  Perl needs to be added as does C++.
+
+
 2003-10-14  dtynan  <dtynan@kalopa.com>
 
 	* Extensive hacking to make the back-end use M4 instead of hard-coding
@@ -10,3 +35,23 @@
 	  the intermediate code cleaner and makes it a lot easier to write
 	  advanced back-ends.  SQL is still hard-coded.
 
+2004-04-30  dtynan  <dtynan@kalopa.com>
+
+	* Added a 'db_findXXXfirst()' function for searching
+	  the entire table.
+	* Added a 'db_runXXXquery()' function which will run
+	  an SQL statement (without parsing any arguments)
+	  and return the first match.
+	* Fixed a bug where the include() m4 statement was
+	  being emitted more than once.
+	* Put the 'EMIT' code at the bottom of the output file.
+
+2004-05-18  dtynan  <dtynan@kalopa.com>
+
+	* Deprecated the use of %proto and %code because they're
+	  too hard to deal with in the midst of the M4 stuff.
+	* Added new keywords %[type XXX] proto { and %[type XXX] code {
+	  which will immediately emit the following lines from there
+	  to the line "%}" either to the include file (or the code
+	  file if there is no separate include file) and to the code
+	  file respectively.

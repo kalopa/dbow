@@ -34,6 +34,18 @@ dnl
 dnl ABSTRACT
 dnl
 dnl $Log$
+dnl Revision 1.8  2004/04/30 11:48:29  dtynan
+dnl Lots of changes for minor bug fixes, added functionality and the like.
+dnl Notably the following:
+dnl     o	Added a 'db_findXXXfirst()' function for searching the entired
+dnl 	table.
+dnl     o	Added a 'db_runXXXquery()' function which will run an SQL
+dnl 	statement (without parsing any arguments) and return the
+dnl 	first match.
+dnl     o	Fixed a bug where the include() m4 statement was being used
+dnl 	more than once.
+dnl     o	Put the 'EMIT' code at the bottom of the output file.
+dnl
 dnl Revision 1.7  2004/02/02 12:45:22  dtynan
 dnl Added missing include files.
 dnl
@@ -371,7 +383,7 @@ define(UPDATE_BODY,`
 int
 $2(dbow_conn *c, struct db_$1 *p, STYPE($1, $3) x)
 {
-	if (dbow_query(c, "UPDATE $1 SET (STRNAME($1,0) = QTYPE($1,0) forloop(i,1,STR_$1_NELEM0,`,STRNAME($1,i) = QTYPE($1,i)')) WHERE STRNAME($1,$3) = QTYPE($1,$3)",
+	if (dbow_query(c, "UPDATE $1 SET STRNAME($1,0) = QTYPE($1,0) forloop(i,1,STR_$1_NELEM0,`,STRNAME($1,i) = QTYPE($1,i)') WHERE STRNAME($1,$3) = QTYPE($1,$3)",
 forloop(i,0,STR_$1_NELEM0,`			p->STRNAME($1,i),
 			') x) < 0)
 		return(-1);

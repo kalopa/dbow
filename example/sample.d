@@ -35,6 +35,18 @@
 # defintion, which closely resembles the SQL table code.
 #
 # $Log$
+# Revision 1.4  2004/04/30 11:48:29  dtynan
+# Lots of changes for minor bug fixes, added functionality and the like.
+# Notably the following:
+#     o	Added a 'db_findXXXfirst()' function for searching the entired
+# 	table.
+#     o	Added a 'db_runXXXquery()' function which will run an SQL
+# 	statement (without parsing any arguments) and return the
+# 	first match.
+#     o	Fixed a bug where the include() m4 statement was being used
+# 	more than once.
+#     o	Put the 'EMIT' code at the bottom of the output file.
+#
 # Revision 1.3  2004/01/28 13:53:57  dtynan
 # Minor changes prior to 0.3 release.
 #
@@ -50,11 +62,23 @@
 #
 # Put out a C-style comment block for all file types.
 #
-%emit {
+%proto {
 /*
  * $Id$
  *
  * $Log$
+ * Revision 1.4  2004/04/30 11:48:29  dtynan
+ * Lots of changes for minor bug fixes, added functionality and the like.
+ * Notably the following:
+ *     o	Added a 'db_findXXXfirst()' function for searching the entired
+ * 	table.
+ *     o	Added a 'db_runXXXquery()' function which will run an SQL
+ * 	statement (without parsing any arguments) and return the
+ * 	first match.
+ *     o	Fixed a bug where the include() m4 statement was being used
+ * 	more than once.
+ *     o	Put the 'EMIT' code at the bottom of the output file.
+ *
  * Revision 1.3  2004/01/28 13:53:57  dtynan
  * Minor changes prior to 0.3 release.
  *
@@ -68,7 +92,7 @@
  *
  */
 %}
-%type C emit {
+%type C code {
 
 #include <stdio.h>
 #include <unistd.h>
@@ -106,12 +130,10 @@
 %search user handle
 %type C dump user
 
-%proto
-
 #
 # An additional C function to make the resultant code executable.
 #
-%type C emit {
+%type C code {
 
 extern	int	optind;
 extern	int	opterr;
@@ -188,7 +210,7 @@ usage()
 #
 # An additional PHP function...
 #
-%type PHP emit {
+%type PHP code {
 function finduniqueaddress($addr)
 {
 }

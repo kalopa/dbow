@@ -35,6 +35,18 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.6  2004/04/30 12:12:25  dtynan
+ * Lots of changes for minor bug fixes, added functionality and the like.
+ * Notably the following:
+ *     o	Added a 'db_findXXXfirst()' function for searching the entired
+ * 	table.
+ *     o	Added a 'db_runXXXquery()' function which will run an SQL
+ * 	statement (without parsing any arguments) and return the
+ * 	first match.
+ *     o	Fixed a bug where the include() m4 statement was being used
+ * 	more than once.
+ *     o	Put the 'EMIT' code at the bottom of the output file.
+ *
  * Revision 1.5  2004/01/28 13:53:17  dtynan
  * Minor bug fixes and modifications prior to new release 0.3
  *
@@ -90,7 +102,7 @@ main(int argc, char *argv[])
 	/*
 	 * Deal with the command-line options.
 	 */
-	while ((i = getopt(argc, argv, "h:t:o:xNm")) != -1) {
+	while ((i = getopt(argc, argv, "h:t:o:xNmv")) != -1) {
 		switch (i) {
 		case 'h':
 			hofile = optarg;
@@ -117,6 +129,11 @@ main(int argc, char *argv[])
 
 		case 'N':
 			nflag = 1;
+			break;
+
+		case 'v':
+			printf("DBOW version %s\n", DBOW_VERSION);
+			exit(0);
 			break;
 
 		default:
@@ -447,6 +464,6 @@ gentmpf()
 void
 usage()
 {
-	fprintf(stderr, "Usage: dbow [-Nhm][-t type][-o file] file\n");
+	fprintf(stderr, "Usage: dbow [-xNmv][-t type][-h incfile][-o file] file\n");
 	exit(2);
 }

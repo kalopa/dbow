@@ -33,6 +33,18 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.4  2004/04/30 12:12:24  dtynan
+ * Lots of changes for minor bug fixes, added functionality and the like.
+ * Notably the following:
+ *     o	Added a 'db_findXXXfirst()' function for searching the entired
+ * 	table.
+ *     o	Added a 'db_runXXXquery()' function which will run an SQL
+ * 	statement (without parsing any arguments) and return the
+ * 	first match.
+ *     o	Fixed a bug where the include() m4 statement was being used
+ * 	more than once.
+ *     o	Put the 'EMIT' code at the bottom of the output file.
+ *
  * Revision 1.3  2004/01/26 23:43:21  dtynan
  * Extensive changes to fix some M4 issues and some library issues.
  * Removed many of the functions which were used to parse data types
@@ -50,6 +62,8 @@
 
 #define DBASE_MYSQL	0
 #define NDBASETYPES	1
+
+#define DBOW_VERSION	"0.5"
 
 /*
  * Structure definition for columns within a table.
