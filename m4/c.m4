@@ -34,6 +34,9 @@ dnl
 dnl ABSTRACT
 dnl
 dnl $Log$
+dnl Revision 1.5  2004/01/28 13:48:08  dtynan
+dnl Updated as per new mechanisms.
+dnl
 dnl Revision 1.4  2004/01/26 23:43:21  dtynan
 dnl Extensive changes to fix some M4 issues and some library issues.
 dnl Removed many of the functions which were used to parse data types
@@ -306,10 +309,12 @@ define(INSERT_PROTO,`
 int $2(dbow_conn *c, struct db_$1 *p);')
 
 define(INSERT_BODY,`
-int $2(dbow_conn *c, struct db_$1 *p)
+int
+$2(dbow_conn *c, struct db_$1 *p)
 {
-	dbow_query(c, "INSERT INTO $1 VALUES (QTYPE($1,0) forloop(i,1,STR_$1_NELEM0,`,QTYPE($1,i)'))",
-		p->STRNAME($1,0) forloop(i,1,STR_$1_NELEM0,`,p->STRNAME($1,i)'));
+	if (dbow_query(c, "INSERT INTO $1 VALUES (QTYPE($1,0) forloop(i,1,STR_$1_NELEM0,`,QTYPE($1,i)'))",
+		p->STRNAME($1,0) forloop(i,1,STR_$1_NELEM0,`,p->STRNAME($1,i)')) < 0)
+		return(-1);
 	if (p->STRNAME($1,0) == 0)
 		p->STRNAME($1,0) = dbow_insertid(c);
 	return(0);
@@ -344,7 +349,9 @@ define(UPDATE_BODY,`
 int
 $2(dbow_conn *c, struct db_$1 *p, STYPE($1, $3) x)
 {
-	if (dbow_query(c, "UPDATE $1 SET (STRNAME($1,0) = QTYPE($1,0) forloop(i,1,STR_$1_NELEM0,`,STRNAME($1,i) = QTYPE($1,i)')) WHERE STRNAME($1,$3) = QTYPE($1,$3)") < 0)
+	if (dbow_query(c, "UPDATE $1 SET (STRNAME($1,0) = QTYPE($1,0) forloop(i,1,STR_$1_NELEM0,`,STRNAME($1,i) = QTYPE($1,i)')) WHERE STRNAME($1,$3) = QTYPE($1,$3)",
+forloop(i,0,STR_$1_NELEM0,`			p->STRNAME($1,i),
+			') x) < 0)
 		return(-1);
 	return(0);
 }')
