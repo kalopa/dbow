@@ -36,6 +36,11 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2003/07/28 23:14:16  dtynan
+ * Added a check to make sure each table has at least one primary key and
+ * also removed the structure-definition from within PHP (it's now done
+ * by the code-definition block.
+ *
  * Revision 1.2  2003/07/28 21:48:40  dtynan
  * Minor tweaks, including fixing some gensync issues.
  *
@@ -71,7 +76,7 @@ FILE		*fp;
 %term	<nval>	VAL
 %term	<sval>	IDENT
 
-%term	EMIT TABLE SEARCH FUNCTION PROTO CODE ENDDEF ERROR
+%term	EMIT TABLE SEARCH FUNCTION DUMP PROTO CODE ENDDEF ERROR
 
 %term	KW_AUTOINCR KW_BIGINT KW_BLOB KW_CHAR KW_DECIMAL KW_DATE KW_DATETIME
 %term	KW_DOUBLE KW_ENUM KW_FLOAT KW_INT KW_KEY KW_LONGBLOB KW_LONGTEXT
@@ -96,6 +101,7 @@ dbow_stmnt:	  emit_stmnt
 		| table_stmnt
 		| search_stmnt
 		| function_stmnt
+		| dump_stmnt
 		| proto_stmnt
 		| code_stmnt
 		;
@@ -147,17 +153,37 @@ table_stmnt:	  TABLE ntname '{' table_defs  ENDDEF
 
 search_stmnt:	  SEARCH otname ident
 		{
+			char tmp[512];
 			struct column *cp;
 
 			if ((cp = findcolumn($2, $3)) == NULL) {
 				yyerror("cannot find column within table");
 				break;
 			}
-			cp->flags |= FLAG_SEARCH;
+			sprintf(tmp, "%sfind%sby%s", prefix, $2->name, $3);
+			cp->sfname = strdup(tmp);
+		}
+		;
+
+search_stmnt:	  SEARCH otname ident ident
+		{
+			struct column *cp;
+
+			if ((cp = findcolumn($2, $3)) == NULL) {
+				yyerror("cannot find column within table");
+				break;
+			}
+			cp->sfname = $4;
 		}
 		;
 
 function_stmnt:	  FUNCTION
+		;
+
+dump_stmnt:	  DUMP otname
+		{
+			$2->flags |= FLAG_DUMP;
+		}
 		;
 
 proto_stmnt:	  PROTO
@@ -612,6 +638,8 @@ yylex()
 			return(EMIT);
 		if (strcmp(cp, "function") == 0)
 			return(FUNCTION);
+		if (strcmp(cp, "dump") == 0)
+			return(DUMP);
 		if (strcmp(cp, "proto") == 0)
 			return(PROTO);
 		if (strcmp(cp, "search") == 0)

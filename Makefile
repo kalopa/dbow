@@ -33,9 +33,14 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.2  2003/07/28 21:48:37  dtynan
+# Minor tweaks, including fixing some gensync issues.
+#
 # Revision 1.1  2003/07/28 21:31:54  dtynan
 # First pass at an intelligent front-end for databases.
 #
+.SUFFIXES:	.d .sql
+
 MYSQL_INC=/usr/local/include/mysql
 MYSQL_LIB=/usr/local/lib/mysql
 
@@ -91,3 +96,14 @@ sample.o: sample.c
 
 sample.c: sample.d dbow
 	./dbow -t c sample.d
+
+.d.sql:	
+	./dbow -t mysql -o $@ $<
+
+.d.c:	
+	./dbow -t C -h $*.h -o $@ $<
+
+.d.o:	
+	./dbow -t C -h $*.h -o $*.c $<
+	$(CC) $(CFLAGS) -c $*.c
+	rm -f $*.c

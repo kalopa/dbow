@@ -33,6 +33,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/07/28 21:48:39  dtynan
+ * Minor tweaks, including fixing some gensync issues.
+ *
  * Revision 1.1  2003/07/28 21:31:56  dtynan
  * First pass at an intelligent front-end for databases.
  */
@@ -52,6 +55,7 @@
 struct	column	{
 	struct	column	*next;
 	char		*name;
+	char		*sfname;
 	int		type;
 	int		length;
 	int		dprec;
@@ -91,7 +95,6 @@ struct	column	{
 #define FLAG_NOTNULL	0x0008
 #define FLAG_UNIQUE	0x0010
 #define FLAG_NATIONAL	0x0040
-#define FLAG_SEARCH	0x0100
 
 /*
  * Structure definition for a table.
@@ -105,6 +108,7 @@ struct	table	{
 	int		flags;
 };
 
+#define FLAG_DUMP	0x0001
 
 /*
  * Structure for each code generation handler.

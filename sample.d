@@ -44,6 +44,9 @@
 #	country_id	A link to the country table for the home country
 #
 # $Log$
+# Revision 1.2  2003/07/28 21:48:40  dtynan
+# Minor tweaks, including fixing some gensync issues.
+#
 # Revision 1.1  2003/07/28 21:31:59  dtynan
 # First pass at an intelligent front-end for databases.
 #
@@ -83,10 +86,11 @@
 #
 # Define the search functions
 #
-%search club club_id
-%search club club_id
+%search club club_id findbyclubid
 %search club handle
 %search club url
+
+%dump club
 
 %proto
 
@@ -96,11 +100,6 @@
 %emit C {
 
 #include <stdio.h>
-
-dumpclub(struct db_club *p)
-{
-	printf("Club %d: %s (%s)\n", p->club_id, p->handle, p->name);
-}
 
 main()
 {
@@ -113,21 +112,8 @@ main()
 		exit(1);
 	}
 	for (i = 0; i < 10; i++)
-		if ((p = db_findclubbyclub_id(conn, i)) != NULL)
-			dumpclub(p);
-#if 0
-	p->club_id = dbow_fint(row, 0);
-	p->handle = dbow_fchar(row, 1);
-	p->name = dbow_fchar(row, 2);
-	p->url = dbow_fchar(row, 3);
-	p->a1 = dbow_fchar(row, 4);
-	p->a2 = dbow_fchar(row, 5);
-	p->a3 = dbow_fchar(row, 6);
-	p->city = dbow_fchar(row, 7);
-	p->state_county = dbow_fchar(row, 8);
-	p->postcode_zip = dbow_fchar(row, 9);
-	p->country_id = dbow_fint(row, 10);
-#endif
+		if ((p = findbyclubid(conn, i)) != NULL)
+			dump_club(p, stdout);
 }
 
 %}

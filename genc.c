@@ -35,6 +35,11 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2003/07/28 23:44:59  dtynan
+ * Fixed a bug with the separate include file not being invoked for a split
+ * generation.  Also made sure that dbow.h only got invoked once.  Fixed a
+ * problem with type 'char[]' which can't be assigned.
+ *
  * Revision 1.2  2003/07/28 21:48:39  dtynan
  * Minor tweaks, including fixing some gensync issues.
  *
@@ -79,8 +84,7 @@ cdef(struct column *cp)
 void
 gencsearch(struct table *tp, struct column *cp, FILE *fp)
 {
-	fprintf(fp, "\nstruct %s *\n%sfind%sby%s(", tp->pfx, prefix,
-						tp->name, cp->name);
+	fprintf(fp, "\nstruct %s *\n%s(", tp->pfx, cp->sfname);
 	fprintf(fp, "dbow_conn *c, %s %s)\n{\n", cdef(cp), cp->name);
 	fprintf(fp, "\tstruct %s *p = NULL;\n", tp->pfx);
 	fprintf(fp, "\tchar q[100];\n");
@@ -129,11 +133,14 @@ str_c(struct table *tp, FILE *fp)
 	fprintf(fp, "void\t\t%sfree(struct %s *);\n", tp->pfx, tp->pfx);
 	fprintf(fp, "int\t\t%sinsert(dbow_conn *, struct %s *);\n", tp->pfx, tp->pfx);
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
-		if ((cp->flags & FLAG_SEARCH) == 0)
+		if (cp->sfname == NULL)
 			continue;
-		fprintf(fp, "struct %s\t*%sfind%sby%s(", tp->pfx, prefix,
-							tp->name, cp->name);
+		fprintf(fp, "struct %s\t*%s(", tp->pfx, cp->sfname);
 		fprintf(fp, "dbow_conn *, %s);\n", cdef(cp));
+	}
+	if (tp->flags & FLAG_DUMP) {
+		fprintf(fp, "void\t\tdump_%s(struct %s *", tp->name, tp->pfx);
+		fprintf(fp, ", FILE *);\n");
 	}
 }
 
@@ -214,7 +221,57 @@ code_c(struct table *tp, FILE *fp)
 	fprintf(fp, "\treturn(0);\n}\n\n");
 
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
-		if (cp->flags & FLAG_SEARCH)
+		if (cp->sfname != NULL)
 			gencsearch(tp, cp, fp);
+	}
+	if (tp->flags & FLAG_DUMP) {
+		fprintf(fp, "\nvoid\ndump_%s(struct %s *p", tp->name, tp->pfx);
+		fprintf(fp, ", FILE *fp)\n{\n\tfprintf(fp, \"Dump of record ");
+		fprintf(fp, "from table %s:-\\n\");\n", tp->name);
+		for (cp = tp->chead; cp != NULL; cp = cp->next) {
+			switch (cp->type) {
+			case TYPE_NUMERIC:
+			case TYPE_CHAR:
+			case TYPE_VARCHAR:
+			case TYPE_TINYBLOB:
+			case TYPE_TINYTEXT:
+			case TYPE_BLOB:
+			case TYPE_TEXT:
+			case TYPE_MEDBLOB:
+			case TYPE_MEDTEXT:
+			case TYPE_LONGBLOB:
+			case TYPE_LONGTEXT:
+				fprintf(fp, "\tif (p->%s != NULL)\n", cp->name);
+				fprintf(fp, "\t\tfprintf(fp, \"%s", cp->name);
+				fprintf(fp, " = \\\"%%s\\\"\\n\", p->");
+				fprintf(fp, "%s);\n", cp->name);
+				break;
+			case TYPE_TINYINT:
+			case TYPE_SMALLINT:
+			case TYPE_MEDINT:
+			case TYPE_INT:
+			case TYPE_BIGINT:
+			case TYPE_YEAR:
+				fprintf(fp, "\tfprintf(fp, \"%s", cp->name);
+				fprintf(fp, " = %%d\\n\", p->%s);\n", cp->name);
+				break;
+
+			case TYPE_FLOAT:
+			case TYPE_DOUBLE:
+				fprintf(fp, "\tfprintf(fp, \"%s", cp->name);
+				fprintf(fp, " = %%f\\n\", p->%s);\n", cp->name);
+				break;
+
+			case TYPE_DATE:
+			case TYPE_TIME:
+			case TYPE_DATETIME:
+			case TYPE_TSTAMP:
+				fprintf(fp, "\tfprintf(fp, \"%s", cp->name);
+				fprintf(fp, " = %%d\\n\", p->%s);\n", cp->name);
+				break;
+
+			}
+		}
+		fprintf(fp, "}\n");
 	}
 }

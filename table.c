@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/07/28 21:48:40  dtynan
+ * Minor tweaks, including fixing some gensync issues.
+ *
  * Revision 1.1  2003/07/28 21:31:59  dtynan
  * First pass at an intelligent front-end for databases.
  */
@@ -116,6 +119,7 @@ newcolumn(struct table *tp, char *name, int type, int length, int dprec, int fla
 	}
 	cp->next = NULL;
 	cp->name = strdup(name);
+	cp->sfname = NULL;
 	cp->type = type;
 	cp->length = length;
 	cp->dprec = dprec;

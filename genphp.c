@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2003/07/28 23:14:36  dtynan
+ * Fleshed out the PHP code generator.
+ *
  * Revision 1.2  2003/07/28 21:48:40  dtynan
  * Minor tweaks, including fixing some gensync issues.
  *
@@ -49,7 +52,7 @@
 void
 genphpsearch(struct table *tp, struct column *cp, FILE *fp)
 {
-	fprintf(fp, "\nfunction findby%s($conn, $%s)\n{\n", cp->name, cp->name);
+	fprintf(fp, "\nfunction %s($conn, $%s)\n{\n", cp->sfname, cp->name);
 	fprintf(fp, "\tglobal $FALSE;\n\n");
 	fprintf(fp, "\tif ($r = $conn->doquery(\"SELECT * FROM ");
 	fprintf(fp, "%s WHERE %s='$%s'\")) {\n", tp->name, cp->name, cp->name);
@@ -104,7 +107,7 @@ code_php(struct table *tp, FILE *fp)
 	fprintf(fp, "\t}\n\treturn $r;\n}\n");
 
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
-		if (cp->flags & FLAG_SEARCH)
+		if (cp->sfname != NULL)
 			genphpsearch(tp, cp, fp);
 	}
 	fprintf(fp, "}\n");
