@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.5  2003/07/29 15:22:48  dtynan
+# Revised copyright prior to first public release.
+#
 # Revision 1.4  2003/07/29 15:17:29  dtynan
 # Lots and lots of changes.
 #
@@ -72,6 +75,7 @@ PEFILES= c.prolog mysql.prolog perl.prolog php.prolog php.epilog
 all:	dbow dbow.h $(DBOWLIB)
 
 install: dbow dbow.h $(DBOWLIB) $(PEFILES)
+	install -d $(DBOWDIR)
 	install -C -m 555 dbow $(PREFIX)/bin
 	install -C -m 444 $(PEFILES) $(DBOWDIR)
 	install -C -m 444 dbow.h $(PREFIX)/include
