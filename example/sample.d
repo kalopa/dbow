@@ -35,6 +35,9 @@
 # defintion, which closely resembles the SQL table code.
 #
 # $Log$
+# Revision 1.1  2003/10/14 13:00:19  dtynan
+# Major revision of the DBOW code to use M4 as a back-end instead of
+# hard-coding the output.
 #
 
 #
@@ -45,7 +48,22 @@
  * $Id$
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:19  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
+ *
  */
+%}
+%type C emit {
+
+#include <stdio.h>
+#include <unistd.h>
+
+#define DB_HOST		"localhost"
+#define DB_USER		"db_user"
+#define DB_PWD		"db_pwd"
+#define DB_NAME		"db_name"
+
 %}
 
 #
@@ -79,14 +97,6 @@
 # An additional C function to make the resultant code executable.
 #
 %type C emit {
-
-#include <stdio.h>
-#include <unistd.h>
-
-#define DB_HOST		"localhost"
-#define DB_USER		"db_user"
-#define DB_PWD		"db_pwd"
-#define DB_NAME		"db_name"
 
 extern	int	optind;
 extern	int	opterr;

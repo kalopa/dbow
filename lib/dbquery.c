@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:23  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
  */
 
 #include "dbow.h"
@@ -45,7 +48,6 @@
 int
 dbow_query(dbow_conn *conn, char *query)
 {
-	printf("Query: [%s]\n", query);
 	return(mysql_query(conn, query));
 }
 

@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:23  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
  */
 
 #include <stdio.h>
@@ -58,7 +61,6 @@ dbow_iint(int type, char *cp, int val, int len)
 {
 	int i = strlen(cp);
 
-	printf("INT:type=%d, cp = [%s], val=[%d], len=%d\n", type, cp, val, len);
 	cp += i;
 	len -= i;
 	if (len < 11)

@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.1  2003/10/14 13:00:18  dtynan
+# Major revision of the DBOW code to use M4 as a back-end instead of
+# hard-coding the output.
 #
 .SUFFIXES:	.d .sql
 
@@ -42,23 +45,17 @@ MYSQL_LIB=/usr/local/lib/mysql
 PREFIX=	/usr/local
 DBOWDIR=$(PREFIX)/share/dbow
 
-CFLAGS=	-O -I$(MYSQL_INC) -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\"
+CFLAGS=	-O -I$(MYSQL_INC) -I../lib -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\"
 
 all:	sample
 
 install: sample
 
 clean:
-	rm -f sample.c sample.o sample
+	rm -f sample.c sample.h sample.o sample
 
 sample: sample.o
 	$(CC) -o sample -L../lib -L$(MYSQL_LIB) sample.o -ldbow -lmysqlclient
-
-sample.o: sample.c
-	$(CC) -O -I$(PREFIX)/include -I$(MYSQL_INC) -c sample.c
-
-sample.c: sample.d
-	../src/dbow -t C sample.d
 
 .d.sql:	
 	../src/dbow -t mysql -o $@ $<

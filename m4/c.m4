@@ -33,11 +33,16 @@ dnl
 dnl ABSTRACT
 dnl
 dnl $Log$
+dnl Revision 1.1  2003/10/14 13:00:24  dtynan
+dnl Major revision of the DBOW code to use M4 as a back-end instead of
+dnl hard-coding the output.
 dnl
-define(`LSYNC',`#line $1 "$2"')
-define(`M4FILE',`c.m4')
+define(`LSYNC',`#line $1 "$2"')dnl
+define(`M4FILE',`c.m4')dnl
+define(`INCLUDE',`
+#include "$1"')dnl
 LSYNC(__line__,M4FILE)
-define(`FILE_PROLOG',`define(`FILENAME',`$1')
+define(`FILE_PROLOG',`define(`FILENAME',`$1')dnl
 LSYNC(1,FILENAME)
 LSYNC(__line__,M4FILE)
 /*
@@ -49,74 +54,72 @@ LSYNC(__line__,M4FILE)
  * Source is "FILENAME"
  * Template is "$Id$"
  */
-')
+INCLUDE(`dbow.h')')
 define(`FILE_EPILOG',`
-')
-define(`INCLUDE',`
-#include <$1>')
-
-define(`STYPE_UNSIGNED',	`unsigned')
-define(`STYPE_TINYINT',		`char	$1')
-define(`STYPE_SMALLINT',	`short	$1')
-define(`STYPE_MEDINT',		`int	$1')
-define(`STYPE_INT',		`int	$1')
-define(`STYPE_BIGINT',		`long	$1')
-define(`STYPE_FLOAT',		`float	$1')
-define(`STYPE_DOUBLE',		`double	$1')
-define(`STYPE_NUMERIC',		`char	*$1')
-define(`STYPE_DATE',		`int	$1')
-define(`STYPE_TIME',		`int	$1')
-define(`STYPE_DATETIME',	`int	$1')
-define(`STYPE_TSTAMP',		`int	$1')
-define(`STYPE_YEAR',		`int	$1')
-define(`STYPE_CHAR',		`char	$1[$2]')
-define(`STYPE_VARCHAR',		`char	*$1')
-define(`STYPE_TINYBLOB',	`char	*$1')
-define(`STYPE_TINYTEXT',	`char	*$1')
-define(`STYPE_BLOB',		`char	*$1')
-define(`STYPE_TEXT',		`char	*$1')
-define(`STYPE_MEDBLOB',		`char	*$1')
-define(`STYPE_MEDTEXT',		`char	*$1')
-define(`STYPE_LONGBLOB',	`char	*$1')
-define(`STYPE_LONGTEXT',	`char	*$1')
-define(`STYPE_ENUM',		`<error>')
-define(`STYPE_SET',		`<error>')
-
-define(`FTYPE_TINYINT',		`int')
-define(`FTYPE_SMALLINT',	`int')
-define(`FTYPE_MEDINT',		`int')
-define(`FTYPE_INT',		`int')
-define(`FTYPE_BIGINT',		`long')
-define(`FTYPE_FLOAT',		`float')
-define(`FTYPE_DOUBLE',		`double')
-define(`FTYPE_NUMERIC',		`dchar')
-define(`FTYPE_DATE',		`date')
-define(`FTYPE_TIME',		`date')
-define(`FTYPE_DATETIME',	`date')
-define(`FTYPE_TSTAMP',		`date')
-define(`FTYPE_YEAR',		`int')
-define(`FTYPE_CHAR',		`char')
-define(`FTYPE_VARCHAR',		`char')
-define(`FTYPE_TINYBLOB',	`char')
-define(`FTYPE_TINYTEXT',	`char')
-define(`FTYPE_BLOB',		`char')
-define(`FTYPE_TEXT',		`char')
-define(`FTYPE_MEDBLOB',		`char')
-define(`FTYPE_MEDTEXT',		`char')
-define(`FTYPE_LONGBLOB',	`char')
-define(`FTYPE_LONGTEXT',	`char')
-define(`FTYPE_ENUM',		`<error>')
-define(`FTYPE_SET',		`<error>')
-
+')dnl
+dnl
+define(`STYPE_UNSIGNED',	`unsigned')dnl
+define(`STYPE_TINYINT',		`char	$1')dnl
+define(`STYPE_SMALLINT',	`short	$1')dnl
+define(`STYPE_MEDINT',		`int	$1')dnl
+define(`STYPE_INT',		`int	$1')dnl
+define(`STYPE_BIGINT',		`long	$1')dnl
+define(`STYPE_FLOAT',		`float	$1')dnl
+define(`STYPE_DOUBLE',		`double	$1')dnl
+define(`STYPE_NUMERIC',		`char	*$1')dnl
+define(`STYPE_DATE',		`int	$1')dnl
+define(`STYPE_TIME',		`int	$1')dnl
+define(`STYPE_DATETIME',	`int	$1')dnl
+define(`STYPE_TSTAMP',		`int	$1')dnl
+define(`STYPE_YEAR',		`int	$1')dnl
+define(`STYPE_CHAR',		`char	$1[$2]')dnl
+define(`STYPE_VARCHAR',		`char	*$1')dnl
+define(`STYPE_TINYBLOB',	`char	*$1')dnl
+define(`STYPE_TINYTEXT',	`char	*$1')dnl
+define(`STYPE_BLOB',		`char	*$1')dnl
+define(`STYPE_TEXT',		`char	*$1')dnl
+define(`STYPE_MEDBLOB',		`char	*$1')dnl
+define(`STYPE_MEDTEXT',		`char	*$1')dnl
+define(`STYPE_LONGBLOB',	`char	*$1')dnl
+define(`STYPE_LONGTEXT',	`char	*$1')dnl
+define(`STYPE_ENUM',		`<error>')dnl
+define(`STYPE_SET',		`<error>')dnl
+dnl
+define(`FTYPE_TINYINT',		`int')dnl
+define(`FTYPE_SMALLINT',	`int')dnl
+define(`FTYPE_MEDINT',		`int')dnl
+define(`FTYPE_INT',		`int')dnl
+define(`FTYPE_BIGINT',		`long')dnl
+define(`FTYPE_FLOAT',		`float')dnl
+define(`FTYPE_DOUBLE',		`double')dnl
+define(`FTYPE_NUMERIC',		`dchar')dnl
+define(`FTYPE_DATE',		`date')dnl
+define(`FTYPE_TIME',		`date')dnl
+define(`FTYPE_DATETIME',	`date')dnl
+define(`FTYPE_TSTAMP',		`date')dnl
+define(`FTYPE_YEAR',		`int')dnl
+define(`FTYPE_CHAR',		`char')dnl
+define(`FTYPE_VARCHAR',		`char')dnl
+define(`FTYPE_TINYBLOB',	`char')dnl
+define(`FTYPE_TINYTEXT',	`char')dnl
+define(`FTYPE_BLOB',		`char')dnl
+define(`FTYPE_TEXT',		`char')dnl
+define(`FTYPE_MEDBLOB',		`char')dnl
+define(`FTYPE_MEDTEXT',		`char')dnl
+define(`FTYPE_LONGBLOB',	`char')dnl
+define(`FTYPE_LONGTEXT',	`char')dnl
+define(`FTYPE_ENUM',		`<error>')dnl
+define(`FTYPE_SET',		`<error>')dnl
+dnl
 define(`STR_PROLOG',`
 /*
  * Structure definition for SQL table "$1".
  */
 struct db_$1 {
-	dbow_res *resp;')
-define(`STR_ELEMENT',`	$1;')
-define(`STR_EPILOG',`};')
-
+	dbow_res *resp;')dnl
+define(`STR_ELEMENT',`	$1;')dnl
+define(`STR_EPILOG',`};')dnl
+dnl
 define(`PROTO_PROLOG',`
 /*
  * Prototypes
@@ -124,20 +127,20 @@ define(`PROTO_PROLOG',`
 struct db_$1 *db_$1alloc();
 void db_$1free(struct db_$1 *);
 struct db_$1 *db_find$1next(struct db_$1 *);
-')
-define(`PROTO_INSERT',`int $2(dbow_conn *, struct db_$1 *);')
-define(`PROTO_SEARCH',`struct db_$1 *$2(dbow_conn *, $3);')
-define(`PROTO_DUMP',`void $2(struct db_$1 *, FILE *);')
-define(`PROTO_EPILOG',`')
-
+')dnl
+define(`PROTO_INSERT',`int $2(dbow_conn *, struct db_$1 *);')dnl
+define(`PROTO_SEARCH',`struct db_$1 *$2(dbow_conn *, $3);')dnl
+define(`PROTO_DUMP',`void $2(struct db_$1 *, FILE *);')dnl
+define(`PROTO_EPILOG',`')dnl
+dnl
 define(`FILL_PROLOG',`
 static void
 _dbfill_$1(dbow_row row, struct db_$1 *p)
-{')
+{')dnl
 define(`FILL_ELEMENT',`	dbow_free$2(p->$1);
-	p->$1 = dbow_f$2(row, $3);')
-define(`FILL_EPILOG',`}')
-
+	p->$1 = dbow_f$2(row, $3);')dnl
+define(`FILL_EPILOG',`}')dnl
+dnl
 define(`ALLOC_PROLOG',`
 struct db_$1 *
 db_$1alloc()
@@ -147,18 +150,18 @@ db_$1alloc()
 	if ((p = (struct db_$1 *)dbow_alloc(sizeof(struct db_$1))) == NULL)
 		return(NULL);
 	memset((char *)p, 0, sizeof(struct db_$1));
-	return(p);')
-define(`ALLOC_ELEMENT',`')
-define(`ALLOC_EPILOG',`}')
-
+	return(p);')dnl
+define(`ALLOC_ELEMENT',`')dnl
+define(`ALLOC_EPILOG',`}')dnl
+dnl
 define(`FREE_PROLOG',`
 void
 db_$1free(struct db_$1 *p)
-{')
-define(`FREE_ELEMENT',`	dbow_free$2(p->$1);')
-define(`FREE_EPILOG',`	dbow_free((char *)p);
-}')
-
+{')dnl
+define(`FREE_ELEMENT',`	dbow_free$2(p->$1);')dnl
+define(`FREE_EPILOG',`	dbow_free((char *)p);dnl
+}')dnl
+dnl
 define(`INSERT_PROLOG',`
 int
 $2(dbow_conn *c, struct db_$1 *p)
@@ -166,16 +169,16 @@ $2(dbow_conn *c, struct db_$1 *p)
 	char q[1024];
 	MYSQL_RES *rsp;
 
-	strcpy(q, "INSERT INTO $1 VALUES(");')
+	strcpy(q, "INSERT INTO $1 VALUES(");')dnl
 define(`INSERT_ELEMENT',`	if (dbow_i$2(DBOW_INSERT,q,p->$1,sizeof(q)) < 0)
-		return(-1);')
+		return(-1);')dnl
 define(`INSERT_ACTION',`	if (dbow_query(c,q) != 0)
-		return(-1);')
+		return(-1);')dnl
 define(`INSERT_SETID',`	if (p->$1 == 0)
-		p->$1 = dbow_insertid(c);')
+		p->$1 = dbow_insertid(c);')dnl
 define(`INSERT_EPILOG',` return(0);
-}')
-
+}')dnl
+dnl
 define(`SEARCH_NEXT',`
 struct db_$1 *
 db_find$1next(struct db_$1 *p)
@@ -192,7 +195,7 @@ db_find$1next(struct db_$1 *p)
 	_dbfill_$1(row, p);
 	return(p);
 }
-define(`HAVE_SEARCH_NEXT_$1')')
+define(`HAVE_SEARCH_NEXT_$1')')dnl
 define(`SEARCH_PROLOG',`ifdef(`HAVE_SEARCH_NEXT_$1',`',`SEARCH_NEXT($1)')
 struct db_$1 *
 $2(dbow_conn *c, $3)
@@ -204,21 +207,21 @@ $2(dbow_conn *c, $3)
 	strcpy(q, "SELECT * FROM $1 WHERE");
 ')
 define(`SEARCH_ELEMENT',`	if (dbow_ichar(DBOW_OTHER,q,"$1 = ",sizeof(q)) < 0 || dbow_i$2(DBOW_SEARCH,q,$1,sizeof(q)) < 0)
-		return(NULL);')
+		return(NULL);')dnl
 define(`SEARCH_ACTION',`
 	if (dbow_query(c, q) != 0)
 		return(NULL);
 	if ((p->resp = dbow_store_result(c)) == NULL)
-		return(NULL);')
+		return(NULL);')dnl
 define(`SEARCH_EPILOG',`
 	return(db_find$1next(p));
-}')
-
+}')dnl
+dnl
 define(`DUMP_PROLOG',`
 void
 $2(struct db_$1 *p, FILE *fp)
 {
 	fprintf(fp, "Dump of record from table $1:-\n");
-')
-define(`DUMP_ELEMENT',`	dbow_dump$2(fp, p->$1);')
-define(`DUMP_EPILOG',`}')
+')dnl
+define(`DUMP_ELEMENT',`	dbow_dump$2(fp, p->$1);')dnl
+define(`DUMP_EPILOG',`}')dnl

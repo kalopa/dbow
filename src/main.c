@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:28  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -149,8 +152,9 @@ main(int argc, char *argv[])
 	}
 	/*
 	 * Open the pipe to the M4 command.
+	 * XXX - don't use M4 when generating SQL (for now!).
 	 */
-	if (mflag) {
+	if (mflag || active->cdtype == CDT_DBASE) {
 		if (strcmp(fofile, "-") == 0)
 			fofp = stdout;
 		else if ((fofp = fopen(fofile, "w")) == NULL) {

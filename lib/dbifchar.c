@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:22  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
  */
 
 #include <string.h>
@@ -58,7 +61,6 @@ dbow_ichar(int type, char *cp, char *val, int len)
 {
 	int i = strlen(cp);
 
-	printf("CHR:type=%d, cp = [%s], val=[%s], len=%d\n", type, cp, val, len);
 	cp += i;
 	len -= i;
 	if (i > 0) {
@@ -121,7 +123,6 @@ dbow_ichar(int type, char *cp, char *val, int len)
 		i++;
 	}
 	*cp = '\0';
-	printf("Returned.\n");
 	return(i);
 }
 
