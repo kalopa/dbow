@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.7  2003/10/14 13:15:56  dtynan
+# Upgraded to new M4 format.
+#
 # Revision 1.6  2003/07/30 15:19:57  dtynan
 # Fixed an issue with clean installs
 #
@@ -52,6 +55,7 @@
 # First pass at an intelligent front-end for databases.
 #
 DIRS=	lib src m4 doc example
+PREFIX?=/usr/local
 
 all:
 	@for d in $(DIRS); do $(MAKE) -C $$d all; done

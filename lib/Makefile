@@ -33,20 +33,24 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.1  2003/10/14 13:00:20  dtynan
+# Major revision of the DBOW code to use M4 as a back-end instead of
+# hard-coding the output.
+#
 #
 MYSQL_INC=/usr/local/include/mysql
 MYSQL_LIB=/usr/local/lib/mysql
 
-PREFIX=	/usr/local
+PREFIX?=/usr/local
 DBOWDIR=$(PREFIX)/share/dbow
 
-CFLAGS=	-g -I$(MYSQL_INC) -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\"
+CFLAGS=	-Wall -I$(MYSQL_INC) -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\"
 
 SRCS=	dbase.c dballoc.c dbquery.c dbinsid.c \
-	dbifchar.c dbifdate.c dbifdchar.c \
+	dbifio.c dbifchar.c dbifdate.c dbifdchar.c \
 	dbifdouble.c dbiffloat.c dbifint.c dbiflong.c
 OBJS=	dbase.o dballoc.o dbquery.o dbinsid.o \
-	dbifchar.o dbifdate.o dbifdchar.o \
+	dbifio.o dbifchar.o dbifdate.o dbifdchar.o \
 	dbifdouble.o dbiffloat.o dbifint.o dbiflong.o
 DBOWLIB=libdbow.a
 

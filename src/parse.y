@@ -36,6 +36,10 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:28  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
+ *
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -180,6 +184,18 @@ update_stmnt:	  PCENT opttype KW_UPDATE otname ident
 		;
 
 function_stmnt:	  PCENT opttype KW_FUNCTION otname '{' func_stmnts PCENT '}'
+		{
+			if (!$2)
+				break;
+#ifdef NOTYET
+%type C function {
+	type	search
+	table	phonedir;
+	name	db_phonefindbyid;
+	column	phone_id;
+};
+#endif
+		}
 		;
 
 dump_stmnt:	  PCENT opttype KW_DUMP otname

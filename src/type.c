@@ -35,6 +35,10 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:28  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
+ *
  */
 
 #include <stdio.h>
@@ -86,14 +90,12 @@ m4open(char *ofname, struct type *tp)
 		strcpy(tmpfname, M4BIN);
 	else
 		sprintf(tmpfname, "%s > %s", M4BIN, ofname);
-	printf("M4: [%s]\n", tmpfname);
 	if ((pfp = popen(tmpfname, "w")) == NULL) {
 		fprintf(stderr, "dbow error: ");
 		perror(tmpfname);
 		exit(1);
 	}
 	sprintf(tmpfname, "%s/%s", M4DIR, tp->m4file);
-	printf("M4file: [%s]\n", tmpfname);
 	if ((fp = fopen(tmpfname, "r")) == NULL) {
 		fprintf(stderr, "dbow: cannot find appropriate M4 template: ");
 		perror(tmpfname);

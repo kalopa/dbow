@@ -33,6 +33,10 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:23  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
+ *
  */
 #ifndef	_DBOW_H_
 #define	_DBOW_H_
@@ -41,19 +45,20 @@
 
 #include "mysql.h"
 
+#define dbow_freeshort(p)
 #define dbow_freeint(p)
 #define dbow_freelong(p)
-#define dbow_freechar(p)	{if ((p) != NULL) dbow_free(p); }
+#define dbow_freechar(p)	{if (p != NULL) dbow_free(p);}
 #define dbow_freechrs(p)
 #define dbow_freedate(p)
 #define dbow_freefloat(p)
 #define dbow_freedouble(p)
-#define dbow_freedchar(p)	{if ((p) != NULL) dbow_free(p); }
-
+#define dbow_freedchar(p)
+#define dbow_dumpshort(fp, p)	{fprintf(fp, #p " = %d\n", p);}
 #define dbow_dumpint(fp, p)	{fprintf(fp, #p " = %d\n", p);}
 #define dbow_dumplong(fp, p)	{fprintf(fp, #p " = %d\n", p);}
 #define dbow_dumpchar(fp, p)	{fprintf(fp, #p " = %s\n", p == NULL ? "(null)" : p);}
-#define dbow_dumpchrs(fp, p)	{fprintf(fp, #p " = %d\n", p);}
+#define dbow_dumpchrs(fp, p)	{fprintf(fp, #p " = %s\n", p);}
 #define dbow_dumpdate(fp, p)	{fprintf(fp, #p " = %d\n", p);}
 #define dbow_dumpfloat(fp, p)	{fprintf(fp, #p " = %f\n", p);}
 #define dbow_dumpdouble(fp, p)	{fprintf(fp, #p " = %lf\n", p);}
@@ -74,14 +79,16 @@ dbow_conn	*dbow_init(char *, char *, char *, char *);
 void		dbow_close(dbow_conn *);
 char		*dbow_alloc(int);
 void		dbow_free(char *);
-int		dbow_fint(dbow_row, int);
-long		dbow_flong(dbow_row, int);
-char		*dbow_fchar(dbow_row, int);
+void		dbow_fshort(short *, dbow_row, int);
+void		dbow_fint(int *, dbow_row, int);
+void		dbow_flong(long *, dbow_row, int);
+void		dbow_fchar(char **, dbow_row, int);
 void		dbow_fchrs(char *, dbow_row, int);
-int		dbow_fdate(dbow_row, int);
-float		dbow_ffloat(dbow_row, int);
-double		dbow_fdouble(dbow_row, int);
-char		*dbow_fdchar(dbow_row, int);
+void		dbow_fdate(int *, dbow_row, int);
+void		dbow_ffloat(float *, dbow_row, int);
+void		dbow_fdouble(double *, dbow_row, int);
+void		dbow_fdchar(char **, dbow_row, int);
+int		dbow_ishort(int, char *, short, int);
 int		dbow_iint(int, char *, int, int);
 int		dbow_ilong(int, char *, long, int);
 int		dbow_ichar(int, char *, char *, int);
@@ -96,4 +103,6 @@ dbow_res	*dbow_store_result(dbow_conn *);
 dbow_row	dbow_fetch_row(dbow_res *);
 void		dbow_free_result(dbow_res *);
 
+int		_dbow_iprolog(int, char **, int *);
+int		_dbow_iepilog(int, char *, int, int);
 #endif /* !_DBOW_H_ */

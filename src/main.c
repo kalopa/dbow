@@ -35,6 +35,10 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/10/14 14:10:56  dtynan
+ * Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
+ * reduce blank lines in the output.
+ *
  * Revision 1.1  2003/10/14 13:00:28  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
@@ -165,16 +169,15 @@ main(int argc, char *argv[])
 		hofile = NULL;
 	} else
 		fofp = m4open(fofile, active);
+	gensync(ifile, 1, fofp);
 	genprolog(ifile, fofp);
-	if (!nflag)
-		gensync(ifile, 1, fofp);
 	if (hofile == NULL)
 		hofp = fofp;
 	else {
 		hofp = m4open(hofile, active);
+		genexclude(hofile, 0, hofp);
+		gensync(ifile, 1, hofp);
 		genprolog(ifile, hofp);
-		if (!nflag)
-			gensync(ifile, 1, hofp);
 	}
 	/*
 	 * If we've diverted the prolog to a separate file, then
@@ -204,8 +207,10 @@ main(int argc, char *argv[])
 	 * then exit.
 	 */
 	pclose(fofp);
-	if (hofp != fofp)
+	if (hofp != fofp) {
+		genexclude(hofile, 1, hofp);
 		pclose(hofp);
+	}
 	exit(nerrors > 0 ? 1 : 0);
 }
 
@@ -312,7 +317,7 @@ doproto(char *fname, int lineno)
 	/*
 	 * Now call the code-specific prototype generator for each table.
 	 */
-	if (!nflag && lineno > 0)
+	if (lineno > 0)
 		gensync(fname, lineno, hofp);
 	tp = getnexttable(NULL);
 	while (tp != NULL) {
@@ -339,7 +344,7 @@ docode(char *fname, int lineno)
 	/*
 	 * Call the code-specific generator for each table.
 	 */
-	if (!nflag && lineno > 0)
+	if (lineno > 0)
 		gensync(fname, lineno, fofp);
 	tp = getnexttable(NULL);
 	while (tp != NULL) {

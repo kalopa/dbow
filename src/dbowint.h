@@ -33,6 +33,10 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:26  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
+ *
  */
 
 #define DBASE_MYSQL	0
@@ -142,6 +146,7 @@ void		genfuncname(struct table *, char *, char *, int);
 int		generatesql(struct table *, FILE *);
 void		genprolog(char *, FILE *);
 void		geninclude(char *, FILE *);
+void		genexclude(char *, int, FILE *);
 void		gensync(char *, int, FILE *);
 void		genstr(struct table *, FILE *);
 void		gencode(struct table *, FILE *);

@@ -35,6 +35,10 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/10/14 14:10:56  dtynan
+ * Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
+ * reduce blank lines in the output.
+ *
  * Revision 1.1  2003/10/14 13:00:22  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
@@ -47,10 +51,12 @@
 /*
  *
  */
-char *
-dbow_fchar(dbow_row row, int pos)
+void
+dbow_fchar(char **val, dbow_row row, int pos)
 {
-	return((row[pos] == NULL) ? NULL : strdup(row[pos]));
+	if (*val != NULL)
+		dbow_free(*val);
+	*val = (row[pos] == NULL) ? NULL : strdup(row[pos]);
 }
 
 /*
@@ -59,34 +65,10 @@ dbow_fchar(dbow_row row, int pos)
 int
 dbow_ichar(int type, char *cp, char *val, int len)
 {
-	int i = strlen(cp);
+	int i = _dbow_iprolog(type, &cp, &len);
 
-	cp += i;
-	len -= i;
-	if (i > 0) {
-		switch (type) {
-		case DBOW_INSERT:
-			if (cp[-1] == ')') {
-				cp--;
-				*cp++ = ',';
-			}
-			break;
-
-		case DBOW_OTHER:
-			if (cp[-1] == '\'') {
-				strcpy(cp, " AND");
-				len -= 4;
-				i += 4;
-				cp += 4;
-			}
-
-		default:
-			*cp++ = ' ';
-			len--;
-			i++;
-			break;
-		}
-	}
+	if (i < 0)
+		return(-1);
 	if (val == NULL) {
 		if (len < 4)
 			return(-1);
@@ -116,26 +98,19 @@ dbow_ichar(int type, char *cp, char *val, int len)
 			i++;
 		}
 	}
-	if (len < 2)
-		return(-1);
-	if (type == DBOW_INSERT) {
-		*cp++ = ')';
-		i++;
-	}
-	*cp = '\0';
-	return(i);
+	return(_dbow_iepilog(type, cp, i, len));
 }
 
 /*
  *
  */
 void
-dbow_fchrs(char *cp, dbow_row row, int pos)
+dbow_fchrs(char *val, dbow_row row, int pos)
 {
 	if (row[pos] == NULL)
-		*cp = '\0';
+		*val = '\0';
 	else
-		strcpy(cp, row[pos]);
+		strcpy(val, row[pos]);
 }
 
 /*
@@ -144,10 +119,10 @@ dbow_fchrs(char *cp, dbow_row row, int pos)
 int
 dbow_ichrs(int type, char *cp, char *val, int len)
 {
-	int i = strlen(cp);
+	int i = _dbow_iprolog(type, &cp, &len);
 
-	cp += i;
-	len -= i;
+	if (i < 0)
+		return(-1);
 	if (val == NULL) {
 		if (len < 5)
 			return(-1);
@@ -174,7 +149,7 @@ dbow_ichrs(int type, char *cp, char *val, int len)
 		strcpy(cp, "',");
 		i += 2;
 	}
-	return(i);
+	return(_dbow_iepilog(type, cp, i, len));
 }
 
 /*
@@ -188,7 +163,7 @@ dbow_strcat(char *cp, char *val, int len)
 	cp += i;
 	len -= i;
 	if (val == NULL)
-		return;
+		return(-1);
 	while (*val != '\0' && len > 0) {
 		*cp++ = *val++;
 		len--;

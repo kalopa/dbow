@@ -30,11 +30,6 @@ language merely by defining the SQL query.  As yet, this is
 undeveloped.  Adding stuff to deal with SELECT order would be nice
 too.
 
-On the back-end, it would be a lot better if the system used some
-sort of template mechanism rather than hard-coded printfs for code
-generation.  I suspect that the language itself will have to develop
-and mature before this will be reasonable.  It would certainly
-allow for much more complex back-end coding, including ifdefs and
-the like.  Ideally, instead of using an interface like libdbow.a,
-the calls would be made directly to the appropriate database
-back-end.
+The new M4 back-end needs some tweaking.  The code to produce SQL isn't
+great because of the flags.  It needs some loops or equivalent to
+build tables instead of multiple *_ELEMENT lines.

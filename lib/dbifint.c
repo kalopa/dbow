@@ -35,22 +35,49 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/10/14 14:10:56  dtynan
+ * Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
+ * reduce blank lines in the output.
+ *
  * Revision 1.1  2003/10/14 13:00:23  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "dbow.h"
 
 /*
  *
  */
-int
-dbow_fint(dbow_row row, int pos)
+void
+dbow_fshort(short *val, dbow_row row, int pos)
 {
-	return((row[pos] == NULL) ? 0 : atoi(row[pos]));
+	int myint;
+
+	dbow_fint(&myint, row, pos);
+	*val = (short )myint;
+}
+
+/*
+ *
+ */
+int
+dbow_ishort(int type, char *cp, short val, int len)
+{
+	return(dbow_iint(type, cp, val, len));
+}
+
+/*
+ *
+ */
+void
+dbow_fint(int *val, dbow_row row, int pos)
+{
+	*val = (row[pos] == NULL) ? 0 : atoi(row[pos]);
 }
 
 /*
@@ -59,37 +86,14 @@ dbow_fint(dbow_row row, int pos)
 int
 dbow_iint(int type, char *cp, int val, int len)
 {
-	int i = strlen(cp);
+	int i = _dbow_iprolog(type, &cp, &len), n;
 
-	cp += i;
-	len -= i;
-	if (len < 11)
+	if (i < 0 || len < 11)
 		return(-1);
-	if (i > 0) {
-		switch (type) {
-		case DBOW_INSERT:
-			if (cp[-1] == ')') {
-				cp--;
-				*cp++ = ',';
-			}
-			break;
-
-		case DBOW_OTHER:
-			if (cp[-1] == '\'') {
-				strcpy(cp, " AND");
-				len -= 4;
-				i += 4;
-				cp += 4;
-			}
-
-		default:
-			*cp++ = ' ';
-			len--;
-			i++;
-			break;
-		}
-	}
-	sprintf(cp, "%d,", val);
-	i += strlen(cp);
-	return(i);
+	sprintf(cp, "%d", val);
+	n = strlen(cp);
+	cp += n;
+	i += n;
+	len -= n;
+	return(_dbow_iepilog(type, cp, i, len));
 }

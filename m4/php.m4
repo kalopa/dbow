@@ -33,6 +33,10 @@ dnl
 dnl ABSTRACT
 dnl
 dnl $Log$
+dnl Revision 1.1  2003/10/14 13:00:24  dtynan
+dnl Major revision of the DBOW code to use M4 as a back-end instead of
+dnl hard-coding the output.
+dnl
 dnl
 define(`LSYNC',`')
 define(`M4FILE',`php.m4')
@@ -189,7 +193,7 @@ $2(dbow_conn *c, $3)
 	char q[100];
 	dbow_row row;
 
-	strcpy(q, "SELECT * FROM $1 WHERE");
+	strcpy(q, "SELECT * FROM $1 WHERE ");
 ')
 define(`SEARCH_ELEMENT',`	if (dbow_ichar(DBOW_OTHER,q,"$1 = ",sizeof(q)) < 0 || dbow_i$2(DBOW_SEARCH,q,$1,sizeof(q)) < 0)
 		return(NULL);')
@@ -229,6 +233,10 @@ define(`DUMP_EPILOG',`}')
  * $Id$
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:24  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
+ *
  * Revision 1.6  2003/07/30 13:06:38  dtynan
  * Made some changes to the dump routine naming.
  *

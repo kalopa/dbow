@@ -33,6 +33,10 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.2  2003/10/14 14:10:56  dtynan
+# Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
+# reduce blank lines in the output.
+#
 # Revision 1.1  2003/10/14 13:00:18  dtynan
 # Major revision of the DBOW code to use M4 as a back-end instead of
 # hard-coding the output.
@@ -42,7 +46,7 @@
 MYSQL_INC=/usr/local/include/mysql
 MYSQL_LIB=/usr/local/lib/mysql
 
-PREFIX=	/usr/local
+PREFIX?=/usr/local
 DBOWDIR=$(PREFIX)/share/dbow
 
 CFLAGS=	-O -I$(MYSQL_INC) -I../lib -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\"

@@ -35,9 +35,13 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:23  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -46,21 +50,24 @@
 /*
  *
  */
-int
-dbow_fdate(dbow_row row, int pos)
+void
+dbow_fdate(int *val, dbow_row row, int pos)
 {
-	char *cp, datestr[12];
+	char datestr[14];
 	struct tm tm;
 
+	*val = 0;
 	if (row[pos] == NULL || strlen(row[pos]) != 10)
-		return(0);
-	strcpy(datestr, row[pos]);
-	datestr[4] = datestr[7] = '\0';
+		return;
+	strncpy(datestr, row[pos], sizeof(datestr));
+	datestr[4] = datestr[7] = datestr[10] = '\0';
 	memset((char *)&tm, 0, sizeof(struct tm));
+	tm.tm_hour = 12;
+	tm.tm_min  = tm.tm_sec  = 0;
 	tm.tm_year = atoi(datestr) - 1900;
 	tm.tm_mon  = atoi(datestr + 5) - 1;
 	tm.tm_mday = atoi(datestr + 8);
-	return(mktime(&tm));
+	*val = mktime(&tm);
 }
 
 /*
@@ -69,23 +76,24 @@ dbow_fdate(dbow_row row, int pos)
 int
 dbow_idate(int type, char *cp, int val, int len)
 {
-	int i = strlen(cp);
+	int i = _dbow_iprolog(type, &cp, &len), n;
 	struct tm *tmp;
 
-	cp += i;
-	len -= i;
-	if (len < 11)
+	if (i < 0 || len < 11)
 		return(-1);
 	if (val == 0)
-		strcat(cp, "SYSDATE(),");
+		strcat(cp, "SYSDATE()");
 	else {
 		if ((tmp = localtime((time_t *)&val)) == NULL)
 			return(-1);
-		sprintf(cp, "'%04d-%02d-%02d',",
+		sprintf(cp, "'%04d-%02d-%02d'",
 					tmp->tm_year + 1900,
 					tmp->tm_mon + 1,
 					tmp->tm_mday);
 	}
-	i += strlen(cp);
-	return(i);
+	n = strlen(cp);
+	cp += n;
+	i += n;
+	len -= n;
+	return(_dbow_iepilog(type, cp, i, len));
 }

@@ -35,6 +35,41 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:23  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
+ *
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "dbow.h"
+
+/*
+ *
+ */
+void
+dbow_flong(long *val, dbow_row row, int pos)
+{
+	*val = (row[pos] == NULL) ? 0L : atol(row[pos]);
+}
+
+/*
+ *
+ */
+int
+dbow_ilong(int type, char *cp, long val, int len)
+{
+	int i = _dbow_iprolog(type, &cp, &len), n;
+
+	if (i < 0 || len < 20)
+		return(-1);
+	sprintf(cp, "%ld", val);
+	n = strlen(cp);
+	cp += n;
+	i += n;
+	len -= n;
+	return(_dbow_iepilog(type, cp, i, len));
+}

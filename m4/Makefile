@@ -33,8 +33,12 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.1  2003/10/14 13:00:23  dtynan
+# Major revision of the DBOW code to use M4 as a back-end instead of
+# hard-coding the output.
 #
-PREFIX=	/usr/local
+#
+PREFIX?=/usr/local
 DBOWDIR=$(PREFIX)/share/dbow
 
 M4FILES= c.m4 mysql.m4 perl.m4 php.m4

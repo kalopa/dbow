@@ -35,12 +35,18 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/10/14 14:10:56  dtynan
+ * Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
+ * reduce blank lines in the output.
+ *
  * Revision 1.1  2003/10/14 13:00:26  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "dbowint.h"
 
@@ -110,7 +116,7 @@ gensync(char *fname, int lineno, FILE *fp)
 	/*
 	 * XXX - don't use M4 when generating SQL (for now!).
 	 */
-	if (active->cdtype == CDT_DBASE)
+	if (nflag || active->cdtype == CDT_DBASE)
 		return;
 	fprintf(fp, "LSYNC(%d, `%s')\n", lineno, fname);
 }
@@ -127,6 +133,33 @@ geninclude(char *fname, FILE *fp)
 	if (active->cdtype == CDT_DBASE)
 		return;
 	set1field("INCLUDE", fname, fp);
+}
+
+/*
+ *
+ */
+void
+genexclude(char *fname, int where, FILE *fp)
+{
+	char *cp, *bufp;
+
+	/*
+	 * XXX - don't use M4 when generating SQL (for now!).
+	 */
+	if (active->cdtype == CDT_DBASE)
+		return;
+	if (fname == NULL || (bufp = strdup(fname)) == NULL)
+		return;
+	for (cp = bufp; *cp; cp++) {
+		if (*cp == '.')
+			*cp = '_';
+		else if (islower(*cp))
+			*cp = toupper(*cp);
+	}
+	if (where == 0)
+		set1field("EXCLUDE_INC_PROLOG", bufp, fp);
+	else
+		set1field("EXCLUDE_INC_EPILOG", bufp, fp);
 }
 
 /*
