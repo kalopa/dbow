@@ -1,0 +1,10 @@
+#
+# $Id$
+#
+
+It should be enough to type 'make' and 'make install'.  It will put
+everything in /usr/local which should be OK, but if not, change
+PREFIX in the Makefile.  For MySQL compilation, you'll need to
+define where the system can find MySQL includes and libraries.
+These are MYSQL_INC and MYSQL_LIB.
+

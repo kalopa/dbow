@@ -1,0 +1,40 @@
+#
+# $Id$
+#
+
+Perl support is a must, as is a decent C++ interface derived from
+the C stuff.  From there, things like Python, Java and so on would
+be great.
+
+The %type keyword presently only takes an argument of the form of
+a generator type.  It would be good if this was a bit more advanced.
+As in, "%type !C", or "%type C,C++" that sort of thing.  I'm also
+wondering if it is feasible to extend the types to other things
+like "C,Windows".  It might be better to let the C preprocessor
+take care of that.
+
+
+The %function keyword is unused at present.  It is intended for
+things like:
+
+	%function user {
+		type=search
+		var 1=user_id
+		var 2=a1
+		query="SELECT * FROM user WHERE user_id='$1' AND a1='$2'"
+		name=findbyuserandaddr
+	%}
+
+The idea is to be able to create a rich set of functions in any
+language merely by defining the SQL query.  As yet, this is
+undeveloped.  Adding stuff to deal with SELECT order would be nice
+too.
+
+On the back-end, it would be a lot better if the system used some
+sort of template mechanism rather than hard-coded printfs for code
+generation.  I suspect that the language itself will have to develop
+and mature before this will be reasonable.  It would certainly
+allow for much more complex back-end coding, including ifdefs and
+the like.  Ideally, instead of using an interface like libdbow.a,
+the calls would be made directly to the appropriate database
+back-end.

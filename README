@@ -1,11 +1,24 @@
+#
+# $Id$
+#
 # DBOW
 
-This thing produces standard "class files" for C, C++, Perl,
-PHP and so on.  Not to mention the SQL table definitions.
+DBOW is a database compiler-compiler or front-end.  It takes table
+definitions in a relatively high-level language and prepares C,
+C++, PHP, Perl (etc) functions for manipulating the database.  It
+will also produce SQL table data for MySQL.
 
-Instead of defining a .sql file with the table information,
-you define it in DBOW instead.  Run one option and DBOW will
-produce the SQL table creation (for MySQL or whatever), run
-another option and it will produce C source code to access
-the database, fill a matching struct with the data and so
-on.
+DBOW allows a user to define a database table in a meta-language
+and produce SQL for generating the table.  It also provides C, C++,
+PHP, Perl functions or methods for manipulating the table, such as
+insert/delete/search/update.  The system is used to remove the
+grunt-work of writing class libraries or access functions for
+database tables and having to update several different source files
+if the SQL table format should change.  The resultant code provides
+a language-native mechanism for manipulating the database.
+
+Currently it supports C, C++, SQL and PHP (with Perl under way).
+It will be extended to support other languages and database constructs
+as required. It currently compiles/runs on FreeBSD/Linux.  It
+doesn't require any other libraries or elements except YACC/Bison.
+
