@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.7  2003/07/29 15:22:49  dtynan
+ * Revised copyright prior to first public release.
+ *
  * Revision 1.6  2003/07/29 15:17:29  dtynan
  * Lots and lots of changes.
  *
@@ -242,7 +245,7 @@ str_c(struct table *tp, FILE *fp)
 	 * Do we need a dump function?
 	 */
 	if (tp->flags & FLAG_DUMP) {
-		fprintf(fp, "void dump_%s(struct %s *", tp->name, tp->pfx);
+		fprintf(fp, "void db_dump%s(struct %s *", tp->name, tp->pfx);
 		fprintf(fp, ", FILE *);\n");
 	}
 }
@@ -357,7 +360,7 @@ code_c(struct table *tp, FILE *fp)
 	 * Create the dump function (if needed)
 	 */
 	if (tp->flags & FLAG_DUMP) {
-		fprintf(fp, "\nvoid\ndump_%s(struct %s *p", tp->name, tp->pfx);
+		fprintf(fp, "\nvoid\ndb_dump%s(struct %s *p",tp->name,tp->pfx);
 		fprintf(fp, ", FILE *fp)\n{\n\tfprintf(fp, \"Dump of record ");
 		fprintf(fp, "from table %s:-\\n\");\n", tp->name);
 		for (cp = tp->chead; cp != NULL; cp = cp->next) {

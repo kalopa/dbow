@@ -2,18 +2,21 @@
 # $Id$
 #
 # Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
-# Unpublished rights reserved under the copyright laws of the United
-# States and/or the Republic of Ireland.
 #
-# The software contained herein is proprietary to and embodies the
-# confidential technology of Kalopa Media Limited.  Possession, use,
-# duplication or dissemination of the software and media is authorized
-# only pursuant to a valid written license from Kalopa Media Limited.
+# This is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
 #
-# RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure by the
-# U.S.  Government is subject to restrictions as set forth in
-# Subparagraph (c)(1)(ii) of DFARS 252.227-7013, or in FAR 52.227-19,
-# as applicable.
+# It is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this product; see the file COPYING.  If not, write to
+# the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139,
+# USA.
 #
 # THIS SOFTWARE IS PROVIDED BY KALOPA MEDIA LIMITED "AS IS" AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -28,22 +31,13 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # ABSTRACT
-# This table defines each club within the Sailing Club Network.  It
-# contains all the necessary data for the club at the top-level.
-#
-#	club_id		World-unique identifier for this club
-#	handle		World-unique handle for the club (ie: gbsc)
-#	name		The long-form name of the club, or it's title
-#	url		The URL where the club website can be found
-#	a1		The first line of the clubs address
-#	a2		The second line of the clubs address
-#	a3		The third line of the clubs address
-#	city		The city component of the clubs address
-#	state_county	The state (or country) of the clubs address
-#	postcode_zip	The zip (or postcode) of the clubs address
-#	country_id	A link to the country table for the home country
+# This is a sample DBOW file.  The first block contains a table
+# defintion, which closely resembles the SQL table code.
 #
 # $Log$
+# Revision 1.5  2003/07/29 15:22:51  dtynan
+# Revised copyright prior to first public release.
+#
 # Revision 1.4  2003/07/29 15:17:30  dtynan
 # Lots and lots of changes.
 #
@@ -56,74 +50,130 @@
 # Revision 1.1  2003/07/28 21:31:59  dtynan
 # First pass at an intelligent front-end for databases.
 #
-# Revision 1.4  2003/02/27 11:40:16  dtynan
-# Changed data to use fictitious club so as not to stomp on the GBSC
-# data, and added table comments to the SQL files to explain the field
-# usage.
+
 #
-# Revision 1.3  2003/02/16 22:15:49  dtynan
-# Database Column Harmonization Project, Phase I.  Standardized the name
-# of the list/exe_list/club/user to 'handle'.
+# Put out a C-style comment block for all file types.
 #
-# Revision 1.2  2003/02/16 18:34:04  dtynan
-# Changes to database tables based on Kierans updates and extensions.
-#
-# Revision 1.1  2003/02/16 13:33:18  dtynan
-# First pass at creating SQL tables and data.
-#
+%emit {
+/*
+ * $Id$
+ *
+ * $Log$
+ */
+%}
 
 #
 # Define the table.
 #
-%table club {
-	club_id mediumint(7) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	handle varchar(254) NOT NULL UNIQUE,
-	name varchar(254) NOT NULL,
-	url varchar(254) NOT NULL,
+%table user {
+	user_id mediumint(7) NOT NULL AUTO_INCREMENT primary key,
+	fname varchar(254),
+	lname varchar(254),
 	a1 varchar(254),
 	a2 varchar(254),
 	a3 varchar(254),
 	city varchar(254),
 	state_county varchar(254),
 	postcode_zip varchar(254),
-	country_id mediumint(7) NOT NULL
+	country_id mediumint(7) NOT NULL,
+	contact_phone varchar(254),
+	handle varchar(254) NOT NULL,
+	password varchar(254) NOT NULL
 %}
 
 #
-# Define the search functions
+# Define non-standard functions...
 #
-%insert club clubinsert
-%search club club_id findbyclubid
-%search club handle
-%type php search club url
-%type C update club club_id
-%type perl delete club club_id
-%type C delete club url
-
-%dump club
+%search user user_id
+%type C dump user
 
 %proto
 
 #
-# Include a main function to keep the linker happy.
+# An additional C function to make the resultant code executable.
 #
 %type C emit {
 
 #include <stdio.h>
+#include <unistd.h>
 
-main()
+#define DB_USER		"db_user"
+#define DB_PWD		"db_pwd"
+#define DB_NAME		"db_name"
+
+extern	int	optind;
+extern	int	opterr;
+extern	char	*optarg;
+
+void	usage();
+
+/*
+ * Test function for C
+ */
+main(int argc, char *argv[])
 {
-	int i;
-	struct db_club *p;
+	int i, userid;
+	char *dbuser, *dbpwd, *dbname;
+	struct db_user *dbup;
 	dbow_conn *conn;
 
-	if ((conn = dbow_init("sailclub", "Boomer", "sailclub")) == NULL) {
+	optind = opterr = 0;
+	dbuser = DB_USER;
+	dbpwd  = DB_PWD;
+	dbname = DB_NAME;
+	while ((i = getopt(argc, argv, "u:p:d:")) != EOF) {
+		switch (i) {
+		case 'u':
+			dbuser = optarg;
+			break;
+		case 'p':
+			dbpwd = optarg;
+			break;
+		case 'd':
+			dbname = optarg;
+			break;
+		default:
+			usage();
+			break;
+		}
+	}
+	if ((argc - optind) < 1)
+		usage();
+	if ((conn = dbow_init(dbuser, dbpwd, dbname)) == NULL) {
 		fprintf(stderr, "sample: cannot connect to database.\n");
 		exit(1);
 	}
-	for (i = 0; i < 10; i++)
-		if ((p = findbyclubid(conn, i)) != NULL)
-			dump_club(p, stdout);
+	for (i = optind; i < argc; i++) {
+		if ((userid = atoi(argv[i])) <= 0) {
+			fprintf(stderr, "?Invalid user id: %s\n", argv[i]);
+			continue;
+		}
+		if ((dbup = db_finduserbyuser_id(conn, userid)) == NULL) {
+			fprintf(stderr, "Cannot find user ID: %d\n", userid);
+			continue;
+		}
+		db_dumpuser(dbup, stdout);
+		db_userfree(dbup);
+	}
+	exit(0);
 }
 
+/*
+ *
+ */
+void
+usage()
+{
+	fprintf(stderr, "Usage: sample [-u user][-p pwd][-d dbase] <uid>...\n");
+	exit(2);
+}
+%}
+
+#
+# An additional PHP function...
+#
+%type PHP emit {
+function finduniqueaddress($addr)
+{
+}
 %}
