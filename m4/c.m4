@@ -1,4 +1,3 @@
-#line 1 "c.m4"
 divert(-1)dnl
 dnl
 dnl $Id$
@@ -35,6 +34,12 @@ dnl
 dnl ABSTRACT
 dnl
 dnl $Log$
+dnl Revision 1.4  2004/01/26 23:43:21  dtynan
+dnl Extensive changes to fix some M4 issues and some library issues.
+dnl Removed many of the functions which were used to parse data types
+dnl and made them inline instead.  Improved the M4 generator by adding
+dnl for loops.
+dnl
 dnl Revision 1.3  2003/11/17 13:15:19  dtynan
 dnl Various changes to fix errors in the back-end code.
 dnl
@@ -298,43 +303,65 @@ forloop(i,0,STR_$1_NELEM0,`ATYPE($1,i)
 }')
 
 define(INSERT_PROTO,`
-int db_insert$1(dbow_conn *c, struct db_$1 *p);')
+int $2(dbow_conn *c, struct db_$1 *p);')
 
 define(INSERT_BODY,`
-int db_insert$1(dbow_conn *c, struct db_$1 *p)
+int $2(dbow_conn *c, struct db_$1 *p)
 {
 	dbow_query(c, "INSERT INTO $1 VALUES (QTYPE($1,0) forloop(i,1,STR_$1_NELEM0,`,QTYPE($1,i)'))",
 		p->STRNAME($1,0) forloop(i,1,STR_$1_NELEM0,`,p->STRNAME($1,i)'));
-dnl
 	if (p->STRNAME($1,0) == 0)
 		p->STRNAME($1,0) = dbow_insertid(c);
 	return(0);
 }')
 
+define(DELETE_PROTO,`
+int $2(dbow_conn *c, STYPE($1, $3));')
+define(DELETE_BODY,`
+int
+$2(dbow_conn *c, STYPE($1, $3) x)
+{
+	if (dbow_query(c, "DELETE FROM $1 WHERE STRNAME($1,$3) = QTYPE($1, $3)", x) < 0)
+		return(-1);
+	return(0);
+}')
+
 define(SEARCH_PROTO,`
-struct db_$1 *concat(`db_find$1by',STRNAME($1,$2))(dbow_conn *c, STYPE($1, $2));')
+struct db_$1 *$2(dbow_conn *c, STYPE($1, $3));')
 
 define(SEARCH_BODY,`
 struct db_$1 *
-concat(`db_find$1by',STRNAME($1,$2))(dbow_conn *c, STYPE($1, $2) STRNAME($1,$2))
+$2(dbow_conn *c, STYPE($1, $3) x)
 {
-	if (dbow_query(c, "SELECT * FROM $1 WHERE STRNAME($1,$2) = QTYPE($1, $2)", STRNAME($1, $2)) < 0)
+	if (dbow_query(c, "SELECT * FROM $1 WHERE STRNAME($1,$3) = QTYPE($1, $3)", x) < 0)
 		return(NULL);
 	return(db_find$1next(c, NULL));
 }')
 
-divert(0)dnl
+define(UPDATE_PROTO,`
+int $2(dbow_conn *c, struct db_$1 *p, STYPE($1, $3));')
+define(UPDATE_BODY,`
+int
+$2(dbow_conn *c, struct db_$1 *p, STYPE($1, $3) x)
+{
+	if (dbow_query(c, "UPDATE $1 SET (STRNAME($1,0) = QTYPE($1,0) forloop(i,1,STR_$1_NELEM0,`,STRNAME($1,i) = QTYPE($1,i)')) WHERE STRNAME($1,$3) = QTYPE($1,$3)") < 0)
+		return(-1);
+	return(0);
+}')
 
 define(DUMP_PROTO,`
-void db_dump$1(struct db_$1 *, FILE *);')
+void $2(struct db_$1 *, FILE *);')
 
 define(DUMP_BODY,`
 void
-db_dump$1(struct db_$1 *p, FILE *fp)
+$2(struct db_$1 *p, FILE *fp)
 {
 forloop(i,0,STR_$1_NELEM0,`PTYPE($1,i)
 ')
 }')
+
+divert(0)dnl
+
 #include <string.h>
 #include "dbow.h"
 
