@@ -35,6 +35,10 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:27  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
+ *
  */
 
 #include <stdio.h>
@@ -51,7 +55,7 @@ char	*sqltypes[NTYPES] = {
 /*
  *
  */
-int
+void
 generatesql(struct table *tp, FILE *fp)
 {
 	int havepk;

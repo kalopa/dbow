@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/11/17 13:15:19  dtynan
+ * Various changes to fix errors in the back-end code.
+ *
  * Revision 1.1  2003/10/14 13:00:23  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
@@ -44,56 +47,176 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
+
+#ifdef DBOW_MYSQL
+#include "mysql.h"
+#endif
 
 #include "dbow.h"
 
 /*
  *
  */
-void
-dbow_fdate(int *val, dbow_row row, int pos)
+static int
+numfetch(char *cp, int ndigits)
 {
-	char datestr[14];
-	struct tm tm;
+	int val = 0;
 
-	*val = 0;
-	if (row[pos] == NULL || strlen(row[pos]) != 10)
-		return;
-	strncpy(datestr, row[pos], sizeof(datestr));
-	datestr[4] = datestr[7] = datestr[10] = '\0';
-	memset((char *)&tm, 0, sizeof(struct tm));
-	tm.tm_hour = 12;
-	tm.tm_min  = tm.tm_sec  = 0;
-	tm.tm_year = atoi(datestr) - 1900;
-	tm.tm_mon  = atoi(datestr + 5) - 1;
-	tm.tm_mday = atoi(datestr + 8);
-	*val = mktime(&tm);
+	while (ndigits-- && isdigit(*cp))
+		val = val * 10 + *cp++ - '0';
+	return(val);
 }
 
 /*
  *
  */
-int
-dbow_idate(int type, char *cp, int val, int len)
+void
+dbow_parsedate(dbow_conn *c, int *val, char *cp)
 {
-	int i = _dbow_iprolog(type, &cp, &len), n;
-	struct tm *tmp;
+	int i;
+	char *xp;
+	unsigned long tstamp;
+	struct tm tm;
 
-	if (i < 0 || len < 11)
-		return(-1);
-	if (val == 0)
-		strcat(cp, "SYSDATE()");
-	else {
-		if ((tmp = localtime((time_t *)&val)) == NULL)
-			return(-1);
-		sprintf(cp, "'%04d-%02d-%02d'",
-					tmp->tm_year + 1900,
-					tmp->tm_mon + 1,
-					tmp->tm_mday);
+	*val = 0;
+	if (cp == NULL || *cp == '\0')
+		return;
+	/*
+	 * OK, we have a live date - set up some defaults.  These
+	 * are probably the wrong defaults, but if you only pull
+	 * a year from the database, what do you expect me to tell
+	 * you about the month or the time?
+	 */
+	memset((char *)&tm, 0, sizeof(struct tm));
+	tm.tm_year = 1970;
+	tm.tm_mon = 1;
+	tm.tm_mday = 1;
+	tm.tm_hour = 12;
+	tm.tm_min = tm.tm_sec = 0;
+	if ((xp = strpbrk(cp, ":-")) == NULL) {
+		/*
+		 * Date is of the form; YYYYMMDDHHMMSS.  This is a strange
+		 * one because it's possible to have things like YYMMDD
+		 * in here as well.  We decide this based on the number
+		 * of digits and some SQL skullduggery.
+		 */
+		i = strlen(cp);
+		tstamp = atoi(cp);
+		if (i > 10) {
+			/*
+			 * A seconds field is present.  Strip it off.
+			 */
+			tm.tm_sec = tstamp % 100;
+			tstamp /= 100;
+		}
+		if (i > 8) {
+			/*
+			 * Minute and hour fields are present.  Strip
+			 * them off.
+			 */
+			tm.tm_min = tstamp % 100;
+			tstamp /= 100;
+			tm.tm_hour = tstamp % 100;
+			tstamp /= 100;
+		}
+		if (i > 4) {
+			/*
+			 * A month-day field is present.  Strip it off.
+			 */
+			tm.tm_mday = tstamp % 100;
+			tstamp /= 100;
+		}
+		if (i > 2) {
+			/*
+			 * A month field is present.  Strip it off.
+			 */
+			tm.tm_mon = tstamp % 100;
+			tstamp /= 100;
+		}
+		/*
+		 * There's always either a 2-digit or a 4-digit year.
+		 */
+		tm.tm_year = tstamp;
+	} else {
+		/*
+		 * It's a DATE, TIME or DATETIME format.
+		 */
+		if (*xp == '-') {
+			/*
+			 * First, peel off the DATE portion.
+			 */
+			*xp++ = '\0';
+			tm.tm_year = atoi(cp);
+			cp = xp;
+			tm.tm_mon = numfetch(cp, 2);
+			cp += 2;
+			/*
+			 * Quick validity check - there should be a dash.
+			 */
+			if (*cp++ != '-')
+				return;
+			tm.tm_mday = numfetch(cp, 2);
+			cp += 2;
+			/*
+			 * Strip off any whitespace.
+			 */
+			while (*cp == ' ')
+				cp++;
+			xp = strchr(cp, ':');
+		}
+		/*
+		 * Either there's nothing left or we have a TIME field.
+		 */
+		if (xp != NULL) {
+			*xp++ = '\0';
+			tm.tm_hour = atoi(cp);
+			cp = xp;
+			tm.tm_min = numfetch(cp, 2);
+			cp += 2;
+			/*
+			 * Quick validity check - there should be a colon.
+			 */
+			if (*cp++ != ':')
+				return;
+			tm.tm_sec = numfetch(cp, 2);
+		}
 	}
-	n = strlen(cp);
-	cp += n;
-	i += n;
-	len -= n;
-	return(_dbow_iepilog(type, cp, i, len));
+	/*
+	 * Now add some sanity to the dates we've gleaned.  Note that
+	 * for some ancient reason, days are (1..31) but months are
+	 * (0..11).
+	 */
+	if (tm.tm_sec > 59)
+		tm.tm_sec = 59;
+	if (tm.tm_min > 59)
+		tm.tm_min = 59;
+	if (tm.tm_hour > 23)
+		tm.tm_hour = 23;
+	if (tm.tm_mday > 31 || tm.tm_mday < 1)
+		tm.tm_mday = 1;
+	if (tm.tm_mon > 12 || tm.tm_mon < 1)
+		tm.tm_mon = 1;
+	tm.tm_mon--;
+	/*
+	 * Years are funny things - here's the scoop; if a two-digit
+	 * year has been entered (naughty!), then add the old Y2K
+	 * heuristic (if < 70, then 2000->2069 otherwise 1970->1999).
+	 * For 'mktime', we are interested in the number of years
+	 * since the world began (on January 1st, 1900).
+	 */
+	if (tm.tm_year < 100) {
+		if (tm.tm_year < 70)
+			tm.tm_year += 2000;
+		else
+			tm.tm_year += 1900;
+	}
+	if ((tm.tm_year -= 1900) < 0)
+		tm.tm_year = 0;
+	/*
+	 * Ask 'mktime' to do something sane with daylight-savings
+	 * when it computes the actual time.
+	 */
+	tm.tm_isdst = -1;
+	*val = mktime(&tm);
 }

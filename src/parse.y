@@ -36,6 +36,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/11/17 13:15:20  dtynan
+ * Various changes to fix errors in the back-end code.
+ *
  * Revision 1.1  2003/10/14 13:00:28  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
@@ -112,7 +115,7 @@ emit_stmnt:	  PCENT opttype KW_EMIT '{'
 		{
 			int show = $2;
 
-			gensync(filename, lineno + 1, fofp);
+			linesync(filename, lineno + 1, fofp);
 			while (lexline() != EOF) {
 				if (strcmp(input, "%}") == 0)
 					break;
@@ -183,7 +186,7 @@ update_stmnt:	  PCENT opttype KW_UPDATE otname ident
 		}
 		;
 
-function_stmnt:	  PCENT opttype KW_FUNCTION otname '{' func_stmnts PCENT '}'
+function_stmnt:	  PCENT opttype KW_FUNCTION otname '{' PCENT '}'
 		{
 			if (!$2)
 				break;
@@ -528,55 +531,55 @@ struct	keyword	{
 	char	*name;
 	int	value;
 } keywords[] = {
-	"auto_increment",	KW_AUTOINCR,
-	"bigint",		KW_BIGINT,
-	"blob",			KW_BLOB,
-	"char",			KW_CHAR,
-	"code",			KW_CODE,
-	"decimal",		KW_DECIMAL,
-	"delete",		KW_DELETE,
-	"date",			KW_DATE,
-	"datetime",		KW_DATETIME,
-	"double",		KW_DOUBLE,
-	"dump",			KW_DUMP,
-	"emit",			KW_EMIT,
-	"enum",			KW_ENUM,
-	"float",		KW_FLOAT,
-	"function",		KW_FUNCTION,
-	"insert",		KW_INSERT,
-	"int",			KW_INT,
-	"integer",		KW_INT,
-	"key",			KW_KEY,
-	"longblob",		KW_LONGBLOB,
-	"longtext",		KW_LONGTEXT,
-	"mediumblob",		KW_MEDBLOB,
-	"mediumint",		KW_MEDINT,
-	"mediumtext",		KW_MEDTEXT,
-	"national",		KW_NATIONAL,
-	"not",			KW_NOT,
-	"null",			KW_NULL,
-	"numeric",		KW_NUMERIC,
-	"precision",		KW_PREC,
-	"primary",		KW_PRIMARY,
-	"proto",		KW_PROTO,
-	"real",			KW_REAL,
-	"search",		KW_SEARCH,
-	"set",			KW_SET,
-	"smallint",		KW_SMALLINT,
-	"table",		KW_TABLE,
-	"text",			KW_TEXT,
-	"time",			KW_TIME,
-	"timestamp",		KW_TSTAMP,
-	"tinyblob",		KW_TINYBLOB,
-	"tinyint",		KW_TINYINT,
-	"tinytext",		KW_TINYTEXT,
-	"type",			KW_TYPE,
-	"update",		KW_UPDATE,
-	"unique",		KW_UNIQUE,
-	"unsigned",		KW_UNSIGNED,
-	"varchar",		KW_VARCHAR,
-	"year",			KW_YEAR,
-	NULL,			0
+	{"auto_increment",	KW_AUTOINCR},
+	{"bigint",		KW_BIGINT},
+	{"blob",		KW_BLOB},
+	{"char",		KW_CHAR},
+	{"code",		KW_CODE},
+	{"decimal",		KW_DECIMAL},
+	{"delete",		KW_DELETE},
+	{"date",		KW_DATE},
+	{"datetime",		KW_DATETIME},
+	{"double",		KW_DOUBLE},
+	{"dump",		KW_DUMP},
+	{"emit",		KW_EMIT},
+	{"enum",		KW_ENUM},
+	{"float",		KW_FLOAT},
+	{"function",		KW_FUNCTION},
+	{"insert",		KW_INSERT},
+	{"int",			KW_INT},
+	{"integer",		KW_INT},
+	{"key",			KW_KEY},
+	{"longblob",		KW_LONGBLOB},
+	{"longtext",		KW_LONGTEXT},
+	{"mediumblob",		KW_MEDBLOB},
+	{"mediumint",		KW_MEDINT},
+	{"mediumtext",		KW_MEDTEXT},
+	{"national",		KW_NATIONAL},
+	{"not",			KW_NOT},
+	{"null",		KW_NULL},
+	{"numeric",		KW_NUMERIC},
+	{"precision",		KW_PREC},
+	{"primary",		KW_PRIMARY},
+	{"proto",		KW_PROTO},
+	{"real",		KW_REAL},
+	{"search",		KW_SEARCH},
+	{"set",			KW_SET},
+	{"smallint",		KW_SMALLINT},
+	{"table",		KW_TABLE},
+	{"text",		KW_TEXT},
+	{"time",		KW_TIME},
+	{"timestamp",		KW_TSTAMP},
+	{"tinyblob",		KW_TINYBLOB},
+	{"tinyint",		KW_TINYINT},
+	{"tinytext",		KW_TINYTEXT},
+	{"type",		KW_TYPE},
+	{"update",		KW_UPDATE},
+	{"unique",		KW_UNIQUE},
+	{"unsigned",		KW_UNSIGNED},
+	{"varchar",		KW_VARCHAR},
+	{"year",		KW_YEAR},
+	{NULL,			0}
 };
 
 /*
@@ -748,7 +751,7 @@ yylex()
  * report the line and filename, which is a small help.
  */
 void
-yyerror(char *msg)
+yyerror(const char *msg)
 {
 	if (filename != NULL && lineno > 0)
 		fprintf(stderr, "\"%s\", line %d: ", filename, lineno);

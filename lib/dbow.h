@@ -33,6 +33,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/11/17 13:15:19  dtynan
+ * Various changes to fix errors in the back-end code.
+ *
  * Revision 1.1  2003/10/14 13:00:23  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
@@ -41,29 +44,6 @@
 #ifndef	_DBOW_H_
 #define	_DBOW_H_
 
-#include <stdio.h>
-
-#include "mysql.h"
-
-#define dbow_freeshort(p)
-#define dbow_freeint(p)
-#define dbow_freelong(p)
-#define dbow_freechar(p)	{if (p != NULL) dbow_free(p);}
-#define dbow_freechrs(p)
-#define dbow_freedate(p)
-#define dbow_freefloat(p)
-#define dbow_freedouble(p)
-#define dbow_freedchar(p)
-#define dbow_dumpshort(fp, p)	{fprintf(fp, #p " = %d\n", p);}
-#define dbow_dumpint(fp, p)	{fprintf(fp, #p " = %d\n", p);}
-#define dbow_dumplong(fp, p)	{fprintf(fp, #p " = %d\n", p);}
-#define dbow_dumpchar(fp, p)	{fprintf(fp, #p " = %s\n", p == NULL ? "(null)" : p);}
-#define dbow_dumpchrs(fp, p)	{fprintf(fp, #p " = %s\n", p);}
-#define dbow_dumpdate(fp, p)	{fprintf(fp, #p " = %d\n", p);}
-#define dbow_dumpfloat(fp, p)	{fprintf(fp, #p " = %f\n", p);}
-#define dbow_dumpdouble(fp, p)	{fprintf(fp, #p " = %lf\n", p);}
-#define dbow_dumpdchar(fp, p)	{fprintf(fp, #p " = %s\n", p == NULL ? "(null)" : p);}
-
 #define DBOW_INSERT	0
 #define DBOW_DELETE	1
 #define DBOW_SEARCH	2
@@ -71,38 +51,19 @@
 #define DBOW_DUMP	4
 #define DBOW_OTHER	5
 
-typedef MYSQL		dbow_conn;
-typedef	MYSQL_ROW	dbow_row;
-typedef	MYSQL_RES	dbow_res;
+typedef	struct	_dbow_conn	{
+	void		*dbconn;
+	void		*dbres;
+	int		qboff;
+	int		qbsize;
+	char		*qbuff;
+} dbow_conn;
 
 dbow_conn	*dbow_init(char *, char *, char *, char *);
 void		dbow_close(dbow_conn *);
-char		*dbow_alloc(int);
-void		dbow_free(char *);
-void		dbow_fshort(short *, dbow_row, int);
-void		dbow_fint(int *, dbow_row, int);
-void		dbow_flong(long *, dbow_row, int);
-void		dbow_fchar(char **, dbow_row, int);
-void		dbow_fchrs(char *, dbow_row, int);
-void		dbow_fdate(int *, dbow_row, int);
-void		dbow_ffloat(float *, dbow_row, int);
-void		dbow_fdouble(double *, dbow_row, int);
-void		dbow_fdchar(char **, dbow_row, int);
-int		dbow_ishort(int, char *, short, int);
-int		dbow_iint(int, char *, int, int);
-int		dbow_ilong(int, char *, long, int);
-int		dbow_ichar(int, char *, char *, int);
-int		dbow_ichrs(int, char *, char *, int);
-int		dbow_idate(int, char *, int, int);
-int		dbow_ifloat(int, char *, float, int);
-int		dbow_idouble(int, char *, double, int);
-int		dbow_idchar(int, char *, char *, int);
-int		dbow_query(dbow_conn *, char *);
+int		dbow_query(dbow_conn *, char *, ...);
+char		**dbow_fetch_row(dbow_conn *c);
+void		dbow_free_result(dbow_conn *c);
 int		dbow_insertid(dbow_conn *);
-dbow_res	*dbow_store_result(dbow_conn *);
-dbow_row	dbow_fetch_row(dbow_res *);
-void		dbow_free_result(dbow_res *);
-
-int		_dbow_iprolog(int, char **, int *);
-int		_dbow_iepilog(int, char *, int, int);
+void		dbow_parsedate(dbow_conn *, int *, char *);
 #endif /* !_DBOW_H_ */

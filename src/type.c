@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/11/17 13:15:20  dtynan
+ * Various changes to fix errors in the back-end code.
+ *
  * Revision 1.1  2003/10/14 13:00:28  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
@@ -42,6 +45,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "dbowint.h"
 
@@ -67,7 +72,6 @@ struct	type	types[] = {
 struct type *
 findtype(char *type)
 {
-	int i;
 	struct type *tp;
 
 	for (tp = types; tp->name != NULL; tp++)
@@ -79,12 +83,39 @@ findtype(char *type)
 /*
  *
  */
+void
+linesync(char *fname, int lineno, FILE *fp)
+{
+	switch (active - types) {
+	case 0:
+	case 1:
+		fprintf(fp, "#line %d \"%s\"\n", lineno, fname);
+		break;
+	}
+}
+
+/*
+ *
+ */
+void
+fileinc(char *fname, FILE *fp)
+{
+	switch (active - types) {
+	case 0:
+	case 1:
+		fprintf(fp, "#include \"%s\"\n", fname);
+		break;
+	}
+}
+
+/*
+ *
+ */
 FILE *
 m4open(char *ofname, struct type *tp)
 {
-	int i;
 	char tmpfname[256];
-	FILE *fp, *pfp;
+	FILE *pfp;
 
 	if (strcmp(ofname, "-") == 0)
 		strcpy(tmpfname, M4BIN);
@@ -95,14 +126,14 @@ m4open(char *ofname, struct type *tp)
 		perror(tmpfname);
 		exit(1);
 	}
-	sprintf(tmpfname, "%s/%s", M4DIR, tp->m4file);
-	if ((fp = fopen(tmpfname, "r")) == NULL) {
-		fprintf(stderr, "dbow: cannot find appropriate M4 template: ");
-		perror(tmpfname);
-		exit(1);
-	}
-	while ((i = fgetc(fp)) != EOF)
-		fputc(i, pfp);
-	fclose(fp);
 	return(pfp);
+}
+
+/*
+ *
+ */
+void
+m4include(FILE *fp)
+{
+	fprintf(fp, "include(%s/%s)\n", M4DIR, active->m4file);
 }

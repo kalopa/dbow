@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2003/11/17 13:15:20  dtynan
+ * Various changes to fix errors in the back-end code.
+ *
  * Revision 1.2  2003/10/14 14:10:56  dtynan
  * Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
  * reduce blank lines in the output.
@@ -70,7 +73,6 @@ main(int argc, char *argv[])
 	int i;
 	char tmpfname[256];
 	char *cp, *ifile;
-	FILE *fp;
 
 	opterr = nflag = mflag = 0;
 	active = NULL;
@@ -169,22 +171,13 @@ main(int argc, char *argv[])
 		hofile = NULL;
 	} else
 		fofp = m4open(fofile, active);
-	gensync(ifile, 1, fofp);
-	genprolog(ifile, fofp);
+	linesync(ifile, 1, fofp);
 	if (hofile == NULL)
 		hofp = fofp;
 	else {
 		hofp = m4open(hofile, active);
-		genexclude(hofile, 0, hofp);
-		gensync(ifile, 1, hofp);
-		genprolog(ifile, hofp);
+		linesync(ifile, 1, hofp);
 	}
-	/*
-	 * If we've diverted the prolog to a separate file, then
-	 * we'll need to include it in the main file.
-	 */
-	if (fofp != hofp)
-		geninclude(hofile, fofp);
 	/*
 	 * Parse the input file using YACC and close the input stream.
 	 * If there are no errors, call each table generator.
@@ -193,6 +186,12 @@ main(int argc, char *argv[])
 	yyparse();
 	lexclose();
 	if (nerrors == 0) {
+		/*
+		 * If we've diverted the prolog to a separate file, then
+		 * we'll need to include it in the main file.
+		 */
+		if (fofp != hofp)
+			fileinc(hofile, fofp);
 		doproto(NULL, 0);
 		docode(NULL, 0);
 		/*
@@ -207,10 +206,8 @@ main(int argc, char *argv[])
 	 * then exit.
 	 */
 	pclose(fofp);
-	if (hofp != fofp) {
-		genexclude(hofile, 1, hofp);
+	if (hofp != fofp)
 		pclose(hofp);
-	}
 	exit(nerrors > 0 ? 1 : 0);
 }
 
@@ -313,12 +310,15 @@ doproto(char *fname, int lineno)
 		 */
 		if (tp->ifname == NULL)
 			genfuncname(tp, NULL, NULL, DBOW_INSERT);
+		gendefs(tp, fofile, fofp);
+		if (fofp != hofp)
+			gendefs(tp, hofile, hofp);
 	}
 	/*
 	 * Now call the code-specific prototype generator for each table.
 	 */
 	if (lineno > 0)
-		gensync(fname, lineno, hofp);
+		linesync(fname, lineno, hofp);
 	tp = getnexttable(NULL);
 	while (tp != NULL) {
 		genstr(tp, hofp);
@@ -345,7 +345,7 @@ docode(char *fname, int lineno)
 	 * Call the code-specific generator for each table.
 	 */
 	if (lineno > 0)
-		gensync(fname, lineno, fofp);
+		linesync(fname, lineno, fofp);
 	tp = getnexttable(NULL);
 	while (tp != NULL) {
 		gencode(tp, fofp);

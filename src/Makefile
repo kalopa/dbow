@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.2  2003/11/17 13:15:19  dtynan
+# Various changes to fix errors in the back-end code.
+#
 # Revision 1.1  2003/10/14 13:00:24  dtynan
 # Major revision of the DBOW code to use M4 as a back-end instead of
 # hard-coding the output.
@@ -46,7 +49,7 @@ MYSQL_LIB=/usr/local/lib/mysql
 PREFIX?=/usr/local
 DBOWDIR=$(PREFIX)/share/dbow
 
-CFLAGS=	-O -I$(MYSQL_INC) -I../lib -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\"
+CFLAGS=	-g -Wall -I$(MYSQL_INC) -I../lib -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\"
 
 SRCS=	main.c table.c type.c parse.y gencode.c gensql.c
 OBJS=	main.o table.o type.o parse.o gencode.o gensql.o

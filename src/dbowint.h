@@ -33,6 +33,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/11/17 13:15:20  dtynan
+ * Various changes to fix errors in the back-end code.
+ *
  * Revision 1.1  2003/10/14 13:00:26  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
@@ -47,6 +50,7 @@
  */
 struct	column	{
 	struct	column	*next;
+	int		fno;
 	char		*name;
 	char		*sfname;
 	char		*ufname;
@@ -136,18 +140,20 @@ void		docode(char *, int);
 int		lexopen(char *);
 void		lexclose();
 struct	type	*findtype(char *);
+void		linesync(char *, int, FILE *);
+void		fileinc(char *, FILE *);
 FILE		*m4open(char *, struct type *);
+void		m4include(FILE *);
 struct	table	*newtable(char *, int);
 struct	table	*findtable(char *name);
 struct	table	*getnexttable(struct table *);
 struct	column	*newcolumn(struct table *, char *, int, int, int, int);
 struct	column	*findcolumn(struct table *, char *);
 void		genfuncname(struct table *, char *, char *, int);
-int		generatesql(struct table *, FILE *);
-void		genprolog(char *, FILE *);
-void		geninclude(char *, FILE *);
-void		genexclude(char *, int, FILE *);
-void		gensync(char *, int, FILE *);
+void		generatesql(struct table *, FILE *);
+void		gendefs(struct table *, char *, FILE *);
 void		genstr(struct table *, FILE *);
 void		gencode(struct table *, FILE *);
 void		genepilog(FILE *);
+int		yyparse();
+void		yyerror(const char *);

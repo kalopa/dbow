@@ -35,7 +35,13 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:23  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
  */
+#ifdef DBOW_MYSQL
+#include "mysql.h"
+#endif
 
 #include "dbow.h"
 
@@ -45,5 +51,8 @@
 int
 dbow_insertid(dbow_conn *conn)
 {
-	return(mysql_insert_id(conn));
+#ifdef DBOW_MYSQL
+	return(mysql_insert_id(conn->dbconn));
+#endif
+	return(0);
 }

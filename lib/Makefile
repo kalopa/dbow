@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.2  2003/11/17 13:15:18  dtynan
+# Various changes to fix errors in the back-end code.
+#
 # Revision 1.1  2003/10/14 13:00:20  dtynan
 # Major revision of the DBOW code to use M4 as a back-end instead of
 # hard-coding the output.
@@ -44,14 +47,10 @@ MYSQL_LIB=/usr/local/lib/mysql
 PREFIX?=/usr/local
 DBOWDIR=$(PREFIX)/share/dbow
 
-CFLAGS=	-Wall -I$(MYSQL_INC) -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\"
+CFLAGS=	-Wall -I$(MYSQL_INC) -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\" -DDBOW_MYSQL
 
-SRCS=	dbase.c dballoc.c dbquery.c dbinsid.c \
-	dbifio.c dbifchar.c dbifdate.c dbifdchar.c \
-	dbifdouble.c dbiffloat.c dbifint.c dbiflong.c
-OBJS=	dbase.o dballoc.o dbquery.o dbinsid.o \
-	dbifio.o dbifchar.o dbifdate.o dbifdchar.o \
-	dbifdouble.o dbiffloat.o dbifint.o dbiflong.o
+SRCS=	dbase.c dbquery.c dbinsid.c dbifdate.c
+OBJS=	dbase.o dbquery.o dbinsid.o dbifdate.o
 DBOWLIB=libdbow.a
 
 all:	$(DBOWLIB)

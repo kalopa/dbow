@@ -35,9 +35,18 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:21  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
+ *
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+
+#ifdef DBOW_MYSQL
+#include "mysql.h"
+#endif
 
 #include "dbow.h"
 
@@ -49,10 +58,17 @@ dbow_init(char *host, char *user, char *pwd, char *dbase)
 {
 	dbow_conn *conn;
 
-	if ((conn = mysql_init(NULL)) == NULL || mysql_real_connect(conn,
+	conn = (dbow_conn *)malloc(sizeof(dbow_conn));
+	if (conn == NULL)
+		return(NULL);
+	if ((conn->dbconn = (void *)mysql_init(NULL)) == NULL ||
+				mysql_real_connect(conn->dbconn,
 				host, user, pwd, dbase, 0, NULL, 0) == NULL) {
+		free((void *)conn);
 		return(NULL);
 	}
+	conn->qbuff = NULL;
+	conn->qboff = conn->qbsize = 0;
 	return(conn);
 }
 
@@ -62,5 +78,8 @@ dbow_init(char *host, char *user, char *pwd, char *dbase)
 void
 dbow_close(dbow_conn *conn)
 {
-	mysql_close(conn);
+	mysql_close(conn->dbconn);
+	if (conn->qbuff != NULL)
+		free(conn->qbuff);
+	free((void *)conn);
 }

@@ -35,6 +35,10 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.1  2003/10/14 13:00:28  dtynan
+ * Major revision of the DBOW code to use M4 as a back-end instead of
+ * hard-coding the output.
+ *
  */
 
 #include <stdio.h>
@@ -121,10 +125,13 @@ newcolumn(struct table *tp, char *name, int type, int length, int dprec, int fla
 	cp->dprec = dprec;
 	cp->flags = flags;
 	if (tp != NULL) {
-		if (tp->chead == NULL)
+		if (tp->chead == NULL) {
+			cp->fno = 0;
 			tp->chead = cp;
-		else
+		} else {
+			cp->fno = tp->ctail->fno + 1;
 			tp->ctail->next = cp;
+		}
 		tp->ctail = cp;
 	}
 	return(cp);
