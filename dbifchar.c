@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/07/28 21:48:37  dtynan
+ * Minor tweaks, including fixing some gensync issues.
+ *
  * Revision 1.1  2003/07/28 21:31:55  dtynan
  * First pass at an intelligent front-end for databases.
  */
@@ -88,5 +91,29 @@ dbow_ichar(char *cp, char *val, int len)
 		strcpy(cp, "',");
 		i += 2;
 	}
+	return(i);
+}
+
+/*
+ *
+ */
+int
+dbow_strcat(char *cp, char *val, int len)
+{
+	int i = strlen(cp);
+
+	cp += i;
+	len -= i;
+	if (val == NULL)
+		return;
+	while (*val != '\0' && len > 0) {
+		*cp++ = *val++;
+		len--;
+		i++;
+	}
+	if (len < 2)
+		return(-1);
+	strcpy(cp, "',");
+	i += 2;
 	return(i);
 }

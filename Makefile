@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.3  2003/07/29 00:30:03  dtynan
+# Lots of changes.
+#
 # Revision 1.2  2003/07/28 21:48:37  dtynan
 # Minor tweaks, including fixing some gensync issues.
 #
@@ -53,10 +56,10 @@ XSRCS=	main.c table.c type.c parse.y \
 	genc.c gencpp.c genperl.c genphp.c gensql.c
 XOBJS=	main.o table.o type.o parse.o \
 	genc.o gencpp.o genperl.o genphp.o gensql.o
-LSRCS=	dbase.c dbquery.c dbinsid.c \
+LSRCS=	dbase.c dballoc.c dbquery.c dbinsid.c \
 	dbifchar.c dbifdate.c dbifdchar.c \
 	dbifdouble.c dbiffloat.c dbifint.c dbiflong.c
-LOBJS=	dbase.o dbquery.o dbinsid.o \
+LOBJS=	dbase.o dballoc.o dbquery.o dbinsid.o \
 	dbifchar.o dbifdate.o dbifdchar.o \
 	dbifdouble.o dbiffloat.o dbifint.o dbiflong.o
 DBOWLIB=libdbow.a
@@ -92,10 +95,10 @@ sample: sample.o
 	$(CC) -o sample -L. -L$(MYSQL_LIB) sample.o -ldbow -lmysqlclient
 
 sample.o: sample.c
-	$(CC) -O -I$(MYSQL_INC) -c sample.c
+	$(CC) -O -I$(PREFIX)/include -I$(MYSQL_INC) -c sample.c
 
 sample.c: sample.d dbow
-	./dbow -t c sample.d
+	./dbow -t c -N sample.d
 
 .d.sql:	
 	./dbow -t mysql -o $@ $<

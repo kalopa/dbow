@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2003/07/29 00:30:04  dtynan
+ * Lots of changes.
+ *
  * Revision 1.2  2003/07/28 21:48:40  dtynan
  * Minor tweaks, including fixing some gensync issues.
  *
@@ -70,6 +73,7 @@ newtable(char *name, int flags)
 	sprintf(tmp, "%s%s", prefix, name);
 	tp->pfx = strdup(tmp);
 	tp->chead = tp->ctail = NULL;
+	tp->ifname = NULL;
 	tp->flags = 0;
 	if (thead == NULL)
 		thead = tp;
@@ -119,7 +123,7 @@ newcolumn(struct table *tp, char *name, int type, int length, int dprec, int fla
 	}
 	cp->next = NULL;
 	cp->name = strdup(name);
-	cp->sfname = NULL;
+	cp->sfname = cp->ufname = cp->dfname = NULL;
 	cp->type = type;
 	cp->length = length;
 	cp->dprec = dprec;

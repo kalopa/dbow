@@ -36,6 +36,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.4  2003/07/29 00:30:04  dtynan
+ * Lots of changes.
+ *
  * Revision 1.3  2003/07/28 23:14:16  dtynan
  * Added a check to make sure each table has at least one primary key and
  * also removed the structure-definition from within PHP (it's now done
@@ -54,11 +57,14 @@
 #include <ctype.h>
 
 #include "dbowint.h"
+#include "dbow.h"
+
+#define MAXLINELEN	512
+#define MAXTOKENLEN	64
 
 int		lineno;
 int		tlen, tprec;
-char		input[512];
-char		token[512];
+char		input[MAXLINELEN+2];
 char		*inptr = NULL;
 char		*filename;
 struct	table	*curtable = NULL;
@@ -76,7 +82,9 @@ FILE		*fp;
 %term	<nval>	VAL
 %term	<sval>	IDENT
 
-%term	EMIT TABLE SEARCH FUNCTION DUMP PROTO CODE ENDDEF ERROR
+%term	PCENT ERROR
+%term	KW_CODE KW_DELETE KW_DUMP KW_EMIT KW_FUNCTION KW_INSERT
+%term	KW_PROTO KW_SEARCH KW_TABLE KW_TYPE KW_UPDATE
 
 %term	KW_AUTOINCR KW_BIGINT KW_BLOB KW_CHAR KW_DECIMAL KW_DATE KW_DATETIME
 %term	KW_DOUBLE KW_ENUM KW_FLOAT KW_INT KW_KEY KW_LONGBLOB KW_LONGTEXT
@@ -87,7 +95,7 @@ FILE		*fp;
 
 %term	',' '(' ')' '{' '}'
 
-%type	<nval>	type optquals optqual
+%type	<nval>	class opttype optquals optqual
 %type	<sval>	ident
 %type	<tval>	ntname otname
 
@@ -99,24 +107,20 @@ dbow_file:	  /* Empty statement */
 
 dbow_stmnt:	  emit_stmnt
 		| table_stmnt
+		| insert_stmnt
+		| delete_stmnt
 		| search_stmnt
+		| update_stmnt
 		| function_stmnt
 		| dump_stmnt
 		| proto_stmnt
 		| code_stmnt
 		;
 
-emit_stmnt:	  EMIT ident '{'
+emit_stmnt:	  PCENT opttype KW_EMIT '{'
 		{
-			int show = 0;
-			struct type *tp;
+			int show = $2;
 
-			if ((tp = findtype($2)) == NULL) {
-				yyerror("unknown code generator");
-				break;
-			}
-			if (tp == active)
-				show = 1;
 			if (active->gensync != NULL)
 				active->gensync(filename, lineno + 1, fofp);
 			while (lexline() != EOF) {
@@ -126,24 +130,14 @@ emit_stmnt:	  EMIT ident '{'
 					fprintf(fofp, "%s\n", input);
 			}
 		}
-		| EMIT '{'
-		{
-			if (active->gensync != NULL)
-				active->gensync(filename, lineno + 1, fofp);
-			while (lexline() != EOF) {
-				if (strcmp(input, "%}") == 0)
-					break;
-				fprintf(fofp, "%s\n", input);
-			}
-		}
 		;
 
-table_stmnt:	  TABLE ntname '{' table_defs  ENDDEF
+table_stmnt:	  PCENT KW_TABLE ntname '{' table_defs  PCENT '}'
 		{
 			int sawpk = 0;
 			struct column *cp;
 
-			for (cp = $2->chead; cp != NULL; cp = cp->next)
+			for (cp = $3->chead; cp != NULL; cp = cp->next)
 				if (cp->flags & FLAG_PRIKEY)
 					sawpk = 1;
 			if (!sawpk)
@@ -151,50 +145,89 @@ table_stmnt:	  TABLE ntname '{' table_defs  ENDDEF
 		}
 		;
 
-search_stmnt:	  SEARCH otname ident
+insert_stmnt:	  PCENT opttype KW_INSERT otname
 		{
-			char tmp[512];
-			struct column *cp;
-
-			if ((cp = findcolumn($2, $3)) == NULL) {
-				yyerror("cannot find column within table");
-				break;
-			}
-			sprintf(tmp, "%sfind%sby%s", prefix, $2->name, $3);
-			cp->sfname = strdup(tmp);
+			if ($2)
+				genfuncname($4, NULL, NULL, ACTION_INSERT);
+		}
+		| PCENT opttype KW_INSERT otname ident
+		{
+			if ($2)
+				genfuncname($4, NULL, $5, ACTION_INSERT);
 		}
 		;
 
-search_stmnt:	  SEARCH otname ident ident
+delete_stmnt:	  PCENT opttype KW_DELETE otname ident
 		{
-			struct column *cp;
-
-			if ((cp = findcolumn($2, $3)) == NULL) {
-				yyerror("cannot find column within table");
-				break;
-			}
-			cp->sfname = $4;
+			if ($2)
+				genfuncname($4, $5, NULL, ACTION_DELETE);
+		}
+		| PCENT opttype KW_DELETE otname ident ident
+		{
+			if ($2)
+				genfuncname($4, $5, $6, ACTION_DELETE);
 		}
 		;
 
-function_stmnt:	  FUNCTION
-		;
-
-dump_stmnt:	  DUMP otname
+search_stmnt:	  PCENT opttype KW_SEARCH otname ident
 		{
-			$2->flags |= FLAG_DUMP;
+			if ($2)
+				genfuncname($4, $5, NULL, ACTION_SEARCH);
+		}
+		| PCENT opttype KW_SEARCH otname ident ident
+		{
+			if ($2)
+				genfuncname($4, $5, $6, ACTION_SEARCH);
 		}
 		;
 
-proto_stmnt:	  PROTO
+update_stmnt:	  PCENT opttype KW_UPDATE otname ident
+		{
+			if ($2)
+				genfuncname($4, $5, NULL, ACTION_UPDATE);
+		}
+		| PCENT opttype KW_UPDATE otname ident ident
+		{
+			if ($2)
+				genfuncname($4, $5, $6, ACTION_UPDATE);
+		}
+		;
+
+function_stmnt:	  PCENT opttype KW_FUNCTION
+		;
+
+dump_stmnt:	  PCENT opttype KW_DUMP otname
+		{
+			if ($2)
+				$4->flags |= FLAG_DUMP;
+		}
+		;
+
+proto_stmnt:	  PCENT KW_PROTO
 		{
 			doproto(filename, lineno);
 		}
 		;
 
-code_stmnt:	  CODE
+code_stmnt:	  PCENT KW_CODE
 		{
 			docode(filename, lineno);
+		}
+		;
+
+opttype:	  /* Empty */
+		{
+			$$ = 1;
+		}
+		| KW_TYPE ident
+		{
+			struct type *tp;
+
+			if ((tp = findtype($2)) == NULL) {
+				yyerror("unknown code generator type");
+				break;
+			}
+			$$ = (tp == active) ? 1 : 0;
 		}
 		;
 
@@ -215,7 +248,7 @@ table_defs:	  table_def
 		| table_defs ',' table_def
 		;
 
-table_def:	  ident type optquals
+table_def:	  ident class optquals
 		{
 			struct column *cp;
 
@@ -227,7 +260,7 @@ table_def:	  ident type optquals
 		}
 		;
 
-type:		  KW_TINYINT
+class:		  KW_TINYINT
 		{
 			$$ = TYPE_TINYINT;
 			tlen = tprec = 0;
@@ -497,12 +530,18 @@ struct	keyword	{
 	"bigint",		KW_BIGINT,
 	"blob",			KW_BLOB,
 	"char",			KW_CHAR,
+	"code",			KW_CODE,
 	"decimal",		KW_DECIMAL,
+	"delete",		KW_DELETE,
 	"date",			KW_DATE,
 	"datetime",		KW_DATETIME,
 	"double",		KW_DOUBLE,
+	"dump",			KW_DUMP,
+	"emit",			KW_EMIT,
 	"enum",			KW_ENUM,
 	"float",		KW_FLOAT,
+	"function",		KW_FUNCTION,
+	"insert",		KW_INSERT,
 	"int",			KW_INT,
 	"integer",		KW_INT,
 	"key",			KW_KEY,
@@ -517,15 +556,20 @@ struct	keyword	{
 	"numeric",		KW_NUMERIC,
 	"precision",		KW_PREC,
 	"primary",		KW_PRIMARY,
+	"proto",		KW_PROTO,
 	"real",			KW_REAL,
+	"search",		KW_SEARCH,
 	"set",			KW_SET,
 	"smallint",		KW_SMALLINT,
+	"table",		KW_TABLE,
 	"text",			KW_TEXT,
 	"time",			KW_TIME,
 	"timestamp",		KW_TSTAMP,
 	"tinyblob",		KW_TINYBLOB,
 	"tinyint",		KW_TINYINT,
 	"tinytext",		KW_TINYTEXT,
+	"type",			KW_TYPE,
+	"update",		KW_UPDATE,
 	"unique",		KW_UNIQUE,
 	"unsigned",		KW_UNSIGNED,
 	"varchar",		KW_VARCHAR,
@@ -534,7 +578,10 @@ struct	keyword	{
 };
 
 /*
- *
+ * Open a source file for subsequent parsing.  Note that the
+ * file descriptor, file name and source line number are
+ * globals.  It's too hard to pass anything into YACC and
+ * anyway, who cares?
  */
 int
 lexopen(char *fname)
@@ -549,11 +596,12 @@ lexopen(char *fname)
 		filename = strdup(fname);
 	}
 	lineno = nerrors = 0;
+	inptr = NULL;
 	return(0);
 }
 
 /*
- *
+ * Close an open source file (if there is one).
  */
 void
 lexclose()
@@ -566,7 +614,8 @@ lexclose()
 }
 
 /*
- *
+ * Retrieve a single line from the source file, strip the CR/NL from
+ * the end where applicable, and keep an eye on the line numbering.
  */
 int
 lexline()
@@ -583,98 +632,118 @@ lexline()
 }
 
 /*
- *
- */
-char *
-lexword()
-{
-	char *cp;
-
-	if (!isalpha(*inptr) && *inptr != '_')
-		return(NULL);
-	cp = token;
-	*cp++ = *inptr++;
-	while (isalnum(*inptr) || *inptr == '_')
-		*cp++ = *inptr++;
-	*cp = '\0';
-	return(token);
-}
-
-/*
- *
+ * Return a single lexical token to the parser.  This is done by
+ * keeping a pointer into the source line and when the pointer
+ * falls off the end, fetch a new line.  Then return the next
+ * lexical token in the line.  Some special stuff happens here
+ * because some tokens (such as PCENT) begin at the start of a
+ * line only.  Anywhere else, the token '%' is returned.
  */
 int
 yylex()
 {
-	int atstart = 0;
 	struct keyword *kp;
-	char *cp;
+	char *cp, token[MAXTOKENLEN+2];
 
+	/*
+	 * Skip any leading whitespace.
+	 */
 	while (inptr != NULL && isspace(*inptr))
 		inptr++;
+	/*
+	 * If we don't have a line in play, then keep reading from the
+	 * source file until we have a decent input line or we reach
+	 * the end of the file.
+	 */
 	while (inptr == NULL || *inptr == '\0') {
 		if (lexline() == EOF)
 			return(EOF);
+		/*
+		 * Trim leading whitespace on the line.
+		 */
 		for (cp = input; isspace(*cp); cp++)
 			;
+		/*
+		 * A comment uses a '#' at the start of the line.  If
+		 * we see a comment character or a blank line, then
+		 * try again.
+		 */
 		if (*cp == '#' || *cp == '\0')
 			continue;
+		/*
+		 * It's a keeper.  Check for the presence of a
+		 * percent at the start of the line.
+		 */
 		inptr = cp;
-		atstart = 1;
-	}
-	if (atstart && *inptr == '%') {
-		inptr++;
-		while (isspace(*inptr))
+		if (*inptr == '%') {
 			inptr++;
-		if (*inptr == '}') {
-			inptr = NULL;
-			return(ENDDEF);
+			return(PCENT);
 		}
-		if ((cp = lexword()) == NULL)
-			return(ERROR);
-		if (strcmp(cp, "code") == 0)
-			return(CODE);
-		if (strcmp(cp, "emit") == 0)
-			return(EMIT);
-		if (strcmp(cp, "function") == 0)
-			return(FUNCTION);
-		if (strcmp(cp, "dump") == 0)
-			return(DUMP);
-		if (strcmp(cp, "proto") == 0)
-			return(PROTO);
-		if (strcmp(cp, "search") == 0)
-			return(SEARCH);
-		if (strcmp(cp, "table") == 0)
-			return(TABLE);
-		return(ERROR);
 	}
+	/*
+	 * We have a valid line with non-whitespace in front.  See
+	 * if we can do this the easy way...
+	 */
 	switch (*inptr) {
 	case ',':
 	case '(':
 	case ')':
 	case '{':
 	case '}':
+		/*
+		 * A special character - just return it as-is.
+		 */
 		return(*inptr++);
 
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
+		/*
+		 * A numeric value.  Keep eating digits until we
+		 * run out.
+		 */
 		yylval.nval = 0;
 		while (isdigit(*inptr))
 			yylval.nval = yylval.nval * 10 + *inptr++ - '0';
 		return(VAL);
 	}
-	if (lexword() != NULL) {
-		for (kp = keywords; kp->name != NULL; kp++)
-			if (strcasecmp(token, kp->name) == 0)
-				return(kp->value);
-		yylval.sval = strdup(token);
-		return(IDENT);
+	/*
+	 * OK, at this point it better be some sort of identifier.
+	 * An identifier begins with an alpha character or underscore.
+	 * If we see anything else in the stream, it's an error.
+	 */
+	if (!isalpha(*inptr) && *inptr != '_')
+		return(ERROR);
+	/*
+	 * Stuff all the characters we see until some delimiter
+	 * into a temporary buffer first.
+	 */
+	cp = token;
+	*cp++ = *inptr++;
+	while (cp < &token[MAXTOKENLEN]) {
+		if (!isalnum(*inptr) && *inptr != '_')
+			break;
+		*cp++ = *inptr++;
 	}
-	return(ERROR);
+	*cp = '\0';
+	/*
+	 * Look through the official list of keywords to see if
+	 * we can find this particular entry.
+	 */
+	for (kp = keywords; kp->name != NULL; kp++)
+		if (strcasecmp(token, kp->name) == 0)
+			return(kp->value);
+	/*
+	 * No?  It must be a symbol or identifier or something.
+	 * Return it as a string identifier.
+	 */
+	yylval.sval = strdup(token);
+	return(IDENT);
 }
 
 /*
- *
+ * Generic YACC error function.  Mostly YACC returns errors of the
+ * form "syntax error" which isn't useful.  At least we can
+ * report the line and filename, which is a small help.
  */
 void
 yyerror(char *msg)

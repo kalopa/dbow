@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.5  2003/07/29 00:36:04  dtynan
+ * Formatting errors.
+ *
  * Revision 1.4  2003/07/29 00:30:03  dtynan
  * Lots of changes.
  *
@@ -54,22 +57,34 @@
 
 #include "dbowint.h"
 
-char	*ctypes[NTYPES] = {
+/*
+ * C types for structs and data elements.
+ */
+static	char	*ctypes[NTYPES] = {
 	"char", "short", "int", "int", "long", "float", "double",
 	"char *", "int", "int", "int", "int", "int", "char",
 	"char *", "char *", "char *", "char *", "char *", "char *",
 	"char *", "char *", "char *", "<error>", "<error>"
 };
 
-char	*ftypes[NTYPES] = {
+/*
+ * C function names within the dbow library.
+ */
+static	char	*ftypes[NTYPES] = {
 	"int", "int", "int", "int", "long", "float", "double", "dchar", "date",
 	"date", "date", "date", "int", "char", "char", "char", "char", "char",
 	"char", "char", "char", "char", "char"
 };
 
-char	stypes[NTYPES+1] = "dddddffsdddddssssssssss";
+/*
+ * Format types for printf()
+ */
+static	char	stypes[NTYPES+1] = "dddddffsdddddssssssssss";
 
-char *
+/*
+ * Create a C definition statement based on the column type.
+ */
+static char *
 cdef(struct column *cp)
 {
 	static char tmp[512];
@@ -82,9 +97,26 @@ cdef(struct column *cp)
 }
 
 /*
- *
+ * Generate a function for deleting a row from the database based on
+ * the specified argument name.
  */
-void
+static void
+gencdelete(struct table *tp, struct column *cp, FILE *fp)
+{
+	fprintf(fp, "\nint\n%s(", cp->dfname);
+	fprintf(fp, "dbow_conn *c, %s %s)\n{\n", cdef(cp), cp->name);
+	fprintf(fp, "\tchar q[100];\n");
+	fprintf(fp, "\tsprintf(q,\"DELETE FROM %s WHERE ", tp->name);
+	fprintf(fp, "%s='%%%c'\",%s);\n", cp->name, stypes[cp->type], cp->name);
+	fprintf(fp, "\tif (dbow_query(c, q) != 0)\n\t\treturn(-1);\n");
+	fprintf(fp, "\treturn(0);\n}\n");
+}
+
+/*
+ * Generate a function for searching the database based on the specified
+ * column name.
+ */
+static void
 gencsearch(struct table *tp, struct column *cp, FILE *fp)
 {
 	fprintf(fp, "\nstruct %s *\n%s(", tp->pfx, cp->sfname);
@@ -106,7 +138,40 @@ gencsearch(struct table *tp, struct column *cp, FILE *fp)
 }
 
 /*
- *
+ * Generate a function for updating a row in the database based on
+ * the specified argument name.
+ */
+static void
+gencupdate(struct table *tp, struct column *cp, FILE *fp)
+{
+	int next;
+	struct column *xcp;
+
+	fprintf(fp, "\nint\n%s(", cp->ufname);
+	fprintf(fp, "dbow_conn *c, struct %s *p)\n{\n", tp->pfx);
+	fprintf(fp, "\tchar q[1024];\n\n");
+	next = 0;
+	for (xcp = tp->chead; xcp != NULL; xcp = xcp->next) {
+		if (!next) {
+			fprintf(fp, "\tsprintf(q,\"UPDATE %s SET %s='\");\n",
+						tp->name, xcp->name);
+			next = 1;
+		} else {
+			fprintf(fp, "\tdbow_strcat(q,\"', %s='\",sizeof(q));\n",
+						xcp->name);
+		}
+		fprintf(fp, "\tdbow_i%s(q,p->%s,sizeof(q));\n",
+					ftypes[xcp->type], xcp->name);
+	}
+	fprintf(fp, "\tstrcat(q,\"' WHERE %s='%%%c'\",p->%s);\n", cp->name,
+						stypes[cp->type], cp->name);
+	fprintf(fp, "\tif (dbow_query(c, q) != 0)\n\t\treturn(-1);\n");
+	fprintf(fp, "\treturn(0);\n}\n");
+}
+
+/*
+ * First of the three exposed functions.  This one emits a synchronization
+ * line to the output file in a code-dependent way.
  */
 int
 line_c(char *fname, int lno, FILE *fp)
@@ -115,13 +180,17 @@ line_c(char *fname, int lno, FILE *fp)
 }
 
 /*
- *
+ * Function to generate all the prototype/structure code.  Think of
+ * this as the function which directs output to the C include file.
  */
 int
 str_c(struct table *tp, FILE *fp)
 {
 	struct column *cp;
 
+	/*
+	 * Start with the structure definition for the table.
+	 */
 	fprintf(fp, "\n/*\n * Structure definition for ");
 	fprintf(fp, "SQL table %s\n */\n", tp->name);
 	fprintf(fp, "struct %s {\n", tp->pfx);
@@ -131,18 +200,46 @@ str_c(struct table *tp, FILE *fp)
 			fprintf(fp, "[%d]", cp->length);
 		fprintf(fp, ";\n");
 	}
+	/*
+	 * Now do the exported function prototypes starting with the
+	 * well-defined ones you get for free.
+	 */
 	fprintf(fp, "};\n\n/*\n * Prototypes\n */\n");
-	fprintf(fp, "struct %s\t*%salloc();\n", tp->pfx, tp->pfx);
-	fprintf(fp, "void\t\t%sfree(struct %s *);\n", tp->pfx, tp->pfx);
-	fprintf(fp, "int\t\t%sinsert(dbow_conn *, struct %s *);\n", tp->pfx, tp->pfx);
+	fprintf(fp, "struct %s *%salloc();\n", tp->pfx, tp->pfx);
+	fprintf(fp, "void %sfree(struct %s *);\n", tp->pfx, tp->pfx);
+	fprintf(fp, "int %s(dbow_conn *, struct %s *);\n", tp->ifname, tp->pfx);
+	/*
+	 * Do the delete functions...
+	 */
+	for (cp = tp->chead; cp != NULL; cp = cp->next) {
+		if (cp->dfname == NULL)
+			continue;
+		fprintf(fp, "int %s(", cp->dfname);
+		fprintf(fp, "dbow_conn *, %s);\n", cdef(cp));
+	}
+	/*
+	 * Do the search functions...
+	 */
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
 		if (cp->sfname == NULL)
 			continue;
-		fprintf(fp, "struct %s\t*%s(", tp->pfx, cp->sfname);
+		fprintf(fp, "struct %s *%s(", tp->pfx, cp->sfname);
 		fprintf(fp, "dbow_conn *, %s);\n", cdef(cp));
 	}
+	/*
+	 * Do the update functions...
+	 */
+	for (cp = tp->chead; cp != NULL; cp = cp->next) {
+		if (cp->ufname == NULL)
+			continue;
+		fprintf(fp, "int %s(", cp->ufname);
+		fprintf(fp, "dbow_conn *, struct %s *p);\n", tp->pfx);
+	}
+	/*
+	 * Do we need a dump function?
+	 */
 	if (tp->flags & FLAG_DUMP) {
-		fprintf(fp, "void\t\tdump_%s(struct %s *", tp->name, tp->pfx);
+		fprintf(fp, "void dump_%s(struct %s *", tp->name, tp->pfx);
 		fprintf(fp, ", FILE *);\n");
 	}
 }
@@ -156,6 +253,10 @@ code_c(struct table *tp, FILE *fp)
 	int i;
 	struct column *cp;
 
+	/*
+	 * Do the hard-coded functions, like the one that fills the
+	 * struct from the SQL data
+	 */
 	fprintf(fp, "\nstatic void\n_dbfill_%s(dbow_row row, ", tp->name);
 	fprintf(fp, "struct %s *p)\n{\n", tp->pfx);
 	for (i = 0, cp = tp->chead; cp != NULL; i++, cp = cp->next) {
@@ -168,14 +269,18 @@ code_c(struct table *tp, FILE *fp)
 		}
 	}
 	fprintf(fp, "}\n\n");
-
+	/*
+	 * We always define an alloc() function.
+	 */
 	fprintf(fp, "struct %s *\n%salloc()\n{\n", tp->pfx, tp->pfx);
 	fprintf(fp, "\tstruct %s *p;\n\n", tp->pfx);
-	fprintf(fp, "\tif ((p = (struct %s *)malloc(sizeof(struct ", tp->pfx);
+	fprintf(fp, "\tif ((p = (struct %s *)dbow_alloc(sizeof(struct ", tp->pfx);
 	fprintf(fp, "%s))) == NULL)\n\t\treturn(NULL);\n", tp->pfx);
 	fprintf(fp, "\tmemset((char *)p, 0, sizeof(struct ");
 	fprintf(fp, "%s));\n\treturn(p);\n}\n\n", tp->pfx);
-
+	/*
+	 * We always define a free() function.
+	 */
 	fprintf(fp, "void\n%sfree(struct %s *p)\n{\n", tp->pfx, tp->pfx);
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
 		switch (cp->type) {
@@ -191,16 +296,18 @@ code_c(struct table *tp, FILE *fp)
 		case TYPE_LONGBLOB:
 		case TYPE_LONGTEXT:
 			fprintf(fp, "\tif (p->%s != NULL)\n", cp->name);
-			fprintf(fp, "\t\tfree(p->%s);\n", cp->name);
+			fprintf(fp, "\t\tdbow_free(p->%s);\n", cp->name);
 			break;
 		}
 	}
-	fprintf(fp, "\tfree((char *)p);\n}\n\n");
-
-	fprintf(fp, "int\n%sinsert(dbow_conn *c, struct %s *p)\n{\n", tp->pfx, tp->pfx);
+	fprintf(fp, "\tdbow_free((char *)p);\n}\n\n");
+	/*
+	 * Likewise, there's always an insert function.
+	 */
+	fprintf(fp, "int\n%s(dbow_conn *c, struct %s *p)\n{\n", tp->ifname, tp->pfx);
 	fprintf(fp, "\tint i;\n\tchar q[1024];\n\tMYSQL_RES *rsp;\n\n");
-	fprintf(fp, "\tstrcpy(q, \"insert into %s ", tp->name);
-	fprintf(fp, " values(\");\n\tif ");
+	fprintf(fp, "\tstrcpy(q, \"INSERT INTO %s", tp->name);
+	fprintf(fp, " VALUES(\");\n\tif ");
 	for (i = '(', cp = tp->chead; cp != NULL; cp = cp->next) {
 		if (cp->next != NULL) {
 			fprintf(fp, "%c\tdbow_i%s(q,p->%s,sizeof(q)) < 0 ||\n",
@@ -221,12 +328,31 @@ code_c(struct table *tp, FILE *fp)
 			break;
 		}
 	}
-	fprintf(fp, "\treturn(0);\n}\n\n");
-
+	fprintf(fp, "\treturn(0);\n}\n");
+	/*
+	 * Do delete functions...
+	 */
+	for (cp = tp->chead; cp != NULL; cp = cp->next) {
+		if (cp->dfname != NULL)
+			gencdelete(tp, cp, fp);
+	}
+	/*
+	 * Do search functions...
+	 */
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
 		if (cp->sfname != NULL)
 			gencsearch(tp, cp, fp);
 	}
+	/*
+	 * Do update functions...
+	 */
+	for (cp = tp->chead; cp != NULL; cp = cp->next) {
+		if (cp->ufname != NULL)
+			gencupdate(tp, cp, fp);
+	}
+	/*
+	 * Create the dump function (if needed)
+	 */
 	if (tp->flags & FLAG_DUMP) {
 		fprintf(fp, "\nvoid\ndump_%s(struct %s *p", tp->name, tp->pfx);
 		fprintf(fp, ", FILE *fp)\n{\n\tfprintf(fp, \"Dump of record ");

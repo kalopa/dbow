@@ -1,3 +1,5 @@
+#ident "$Id$"
+
 /*
  * $Id$
  *
@@ -33,57 +35,27 @@
  * ABSTRACT
  *
  * $Log$
- * Revision 1.3  2003/07/28 23:44:59  dtynan
- * Fixed a bug with the separate include file not being invoked for a split
- * generation.  Also made sure that dbow.h only got invoked once.  Fixed a
- * problem with type 'char[]' which can't be assigned.
- *
- * Revision 1.2  2003/07/28 21:48:39  dtynan
- * Minor tweaks, including fixing some gensync issues.
- *
- * Revision 1.1  2003/07/28 21:31:56  dtynan
- * First pass at an intelligent front-end for databases.
  */
-#ifndef	_DBOW_H_
-#define	_DBOW_H_
 
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "mysql.h"
+#include "dbow.h"
 
-#define ACTION_INSERT	0
-#define ACTION_DELETE	1
-#define ACTION_SEARCH	2
-#define ACTION_UPDATE	3
-#define ACTION_DUMP	4
-#define ACTION_OTHER	5
+/*
+ *
+ */
+char *
+dbow_alloc(int size)
+{
+	return((char *)malloc(size));
+}
 
-typedef MYSQL		dbow_conn;
-typedef	MYSQL_ROW	dbow_row;
-typedef	MYSQL_RES	dbow_res;
-
-dbow_conn	*dbow_init();
-void		dbow_close(dbow_conn *);
-char		*dbow_alloc(int);
-void		dbow_free(char *);
-int		dbow_fint(dbow_row, int);
-long		dbow_flong(dbow_row, int);
-char		*dbow_fchar(dbow_row, int);
-int		dbow_fdate(dbow_row, int);
-float		dbow_ffloat(dbow_row, int);
-double		dbow_fdouble(dbow_row, int);
-char		*dbow_fdchar(dbow_row, int);
-int		dbow_iint(char *, int, int);
-int		dbow_ilong(char *, long, int);
-int		dbow_ichar(char *, char *, int);
-int		dbow_idate(char *, int, int);
-int		dbow_ifloat(char *, float, int);
-int		dbow_idouble(char *, double, int);
-int		dbow_idchar(char *, char *, int);
-int		dbow_query(dbow_conn *, char *);
-int		dbow_insertid(dbow_conn *);
-dbow_res	*dbow_store_result(dbow_conn *);
-dbow_row	dbow_fetch_row(dbow_res *);
-void		dbow_free_result(dbow_res *);
-
-#endif /* !_DBOW_H_ */
+/*
+ *
+ */
+void
+dbow_free(char *cp)
+{
+	free(cp);
+}

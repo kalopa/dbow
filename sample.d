@@ -44,6 +44,9 @@
 #	country_id	A link to the country table for the home country
 #
 # $Log$
+# Revision 1.3  2003/07/29 00:30:04  dtynan
+# Lots of changes.
+#
 # Revision 1.2  2003/07/28 21:48:40  dtynan
 # Minor tweaks, including fixing some gensync issues.
 #
@@ -86,9 +89,13 @@
 #
 # Define the search functions
 #
+%insert club clubinsert
 %search club club_id findbyclubid
 %search club handle
-%search club url
+%type php search club url
+%type C update club club_id
+%type perl delete club club_id
+%type C delete club url
 
 %dump club
 
@@ -97,7 +104,7 @@
 #
 # Include a main function to keep the linker happy.
 #
-%emit C {
+%type C emit {
 
 #include <stdio.h>
 

@@ -35,6 +35,11 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2003/07/28 23:44:59  dtynan
+ * Fixed a bug with the separate include file not being invoked for a split
+ * generation.  Also made sure that dbow.h only got invoked once.  Fixed a
+ * problem with type 'char[]' which can't be assigned.
+ *
  * Revision 1.2  2003/07/28 21:48:40  dtynan
  * Minor tweaks, including fixing some gensync issues.
  *
@@ -48,6 +53,7 @@
 #include <ctype.h>
 
 #include "dbowint.h"
+#include "dbow.h"
 
 void	usage();
 
@@ -65,8 +71,8 @@ extern	char	*optarg;
 int
 main(int argc, char *argv[])
 {
-	int i;
-	char *cp;
+	int i, nflag = 0;
+	char *cp, *ifile;
 	FILE *fp;
 
 	prefix = "db_";
@@ -76,7 +82,7 @@ main(int argc, char *argv[])
 	/*
 	 * Deal with the command-line options.
 	 */
-	while ((i = getopt(argc, argv, "h:t:p:o:x")) != -1) {
+	while ((i = getopt(argc, argv, "h:t:p:o:xN")) != -1) {
 		switch (i) {
 		case 'h':
 			hofile = optarg;
@@ -101,6 +107,10 @@ main(int argc, char *argv[])
 			yydebug = 1;
 			break;
 #endif
+		case 'N':
+			nflag = 1;
+			break;
+
 		default:
 			usage();
 			break;
@@ -113,15 +123,18 @@ main(int argc, char *argv[])
 		fprintf(stderr, "dbow: can't find default generator type.\n");
 		exit(1);
 	}
+	if (nflag)
+		active->gensync = NULL;
 	/*
 	 * Make sure we have an input file, and call the lexical
 	 * analyzer to open it.  Report an error if that doesn't work.
 	 */
 	if ((argc - optind) != 1)
 		usage();
-	if (lexopen(argv[optind]) < 0) {
+	ifile = strdup(argv[optind]);
+	if (lexopen(ifile) < 0) {
 		fprintf(stderr, "dbow: ");
-		perror(argv[optind]);
+		perror(ifile);
 		exit(1);
 	}
 	/*
@@ -130,7 +143,7 @@ main(int argc, char *argv[])
 	 * where 'fext' is the generators file extension.
 	 */
 	if (fofile == NULL) {
-		strncpy(tmpfname, argv[optind], sizeof(tmpfname) - 5);
+		strncpy(tmpfname, ifile, sizeof(tmpfname) - 5);
 		if ((cp = strrchr(tmpfname, '.')) != NULL &&
 					cp[1] == 'd' && cp[2] == '\0') {
 			*cp = '\0';
@@ -152,7 +165,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 	if (active->gensync != NULL)
-		active->gensync(fofile, 1, fofp);
+		active->gensync(ifile, 1, fofp);
 	if (hofile == NULL)
 		hofp = fofp;
 	else {
@@ -162,7 +175,7 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 		if (active->gensync != NULL)
-			active->gensync(hofile, 1, hofp);
+			active->gensync(ifile, 1, hofp);
 	}
 	/*
 	 * Emit the prolog code.
@@ -170,6 +183,11 @@ main(int argc, char *argv[])
 	if (active->prolog != NULL) {
 		sprintf(tmpfname, "%s/%s", DBOW, active->prolog);
 		if ((fp = fopen(tmpfname, "r")) != NULL) {
+			if (active->gensync != NULL) {
+				active->gensync(tmpfname, 1, fofp);
+				if (hofp != fofp)
+					active->gensync(tmpfname, 1, hofp);
+			}
 			while ((i = fgetc(fp)) != EOF) {
 				fputc(i, fofp);
 				if (hofp != fofp)
@@ -200,6 +218,11 @@ main(int argc, char *argv[])
 		if (active->epilog != NULL) {
 			sprintf(tmpfname, "%s/%s", DBOW, active->epilog);
 			if ((fp = fopen(tmpfname, "r")) != NULL) {
+				if (active->gensync != NULL) {
+					active->gensync(tmpfname, 1, fofp);
+					if (hofp != fofp)
+						active->gensync(tmpfname, 1, hofp);
+				}
 				while ((i = fgetc(fp)) != EOF) {
 					fputc(i, fofp);
 					if (hofp != fofp)
@@ -225,14 +248,105 @@ main(int argc, char *argv[])
  *
  */
 void
+genfuncname(struct table *tp, char *cname, char *fname, int type)
+{
+	char tmp[512], *xp;
+	struct column *cp = NULL;
+
+	if (tp == NULL)
+		return;
+	if (cname != NULL && (cp = findcolumn(tp, cname)) == NULL) {
+		yyerror("cannot find column within table");
+		return;
+	}
+	switch (type) {
+	case ACTION_INSERT:
+		if (tp->ifname != NULL) {
+			yyerror("multiple insert definitions for table");
+			return;
+		}
+		xp = "insert";
+		break;
+	case ACTION_DELETE:
+		if (cp == NULL)
+			return;
+		if (cp->dfname != NULL) {
+			yyerror("multiple insert definitions for table");
+			return;
+		}
+		xp = "delete";
+		break;
+	case ACTION_SEARCH:
+		if (cp == NULL)
+			return;
+		if (cp->sfname != NULL) {
+			yyerror("multiple insert definitions for table");
+			return;
+		}
+		xp = "find";
+		break;
+	case ACTION_UPDATE:
+		if (cp == NULL)
+			return;
+		if (cp->ufname != NULL) {
+			yyerror("multiple insert definitions for table");
+			return;
+		}
+		xp = "update";
+		break;
+	}
+	if (fname == NULL) {
+		if (type != ACTION_INSERT)
+			sprintf(tmp, "%s%s%sby%s",prefix,xp,tp->name,cp->name);
+		else
+			sprintf(tmp, "%s%s%s",prefix,xp,tp->name);
+		xp = tmp;
+	} else
+		xp = fname;
+	switch (type) {
+	case ACTION_INSERT:
+		tp->ifname = strdup(xp);
+		break;
+	case ACTION_DELETE:
+		cp->dfname = strdup(xp);
+		break;
+	case ACTION_SEARCH:
+		cp->sfname = strdup(xp);
+		break;
+	case ACTION_UPDATE:
+		cp->ufname = strdup(xp);
+		break;
+	}
+}
+
+/*
+ * Generate prototype statements (C structures, etc).
+ */
+void
 doproto(char *fname, int lineno)
 {
 	static int protodone = 0;
 	struct table *tp;
 
+	/*
+	 * Make sure we only execute once...
+	 */
 	if (protodone)
 		return;
 	protodone = 1;
+	/*
+	 * Do any table optimizations here...
+	 */
+	for (tp = getnexttable(NULL); tp != NULL; tp = getnexttable(tp)) {
+		/*
+		 * We always need an insert function.
+		 */
+		if (tp->ifname == NULL)
+			genfuncname(tp, NULL, NULL, ACTION_INSERT);
+	}
+	/*
+	 * Now call the code-specific prototype generator for each table.
+	 */
 	if (active->gensync != NULL && lineno > 0)
 		active->gensync(fname, lineno, hofp);
 	if (active->genstr != NULL) {
@@ -245,7 +359,7 @@ doproto(char *fname, int lineno)
 }
 
 /*
- *
+ * Generate code statements.
  */
 void
 docode(char *fname, int lineno)
@@ -253,9 +367,15 @@ docode(char *fname, int lineno)
 	static int codedone = 0;
 	struct table *tp;
 
+	/*
+	 * Make sure we only execute once...
+	 */
 	if (codedone)
 		return;
 	codedone = 1;
+	/*
+	 * Call the code-specific generator for each table.
+	 */
 	if (active->gensync != NULL && lineno > 0)
 		active->gensync(fname, lineno, fofp);
 	if (active->gencode != NULL) {
@@ -273,6 +393,6 @@ docode(char *fname, int lineno)
 void
 usage()
 {
-	fprintf(stderr, "Usage: dbow [-t type][-p prefix][-h file][-o file] file\n");
+	fprintf(stderr, "Usage: dbow [-t type][-p prefix][-h file][-o file][-N] file\n");
 	exit(2);
 }

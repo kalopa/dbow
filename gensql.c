@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2003/07/28 22:19:16  dtynan
+ * Added fix for multiple primary keys.
+ *
  * Revision 1.2  2003/07/28 21:48:40  dtynan
  * Minor tweaks, including fixing some gensync issues.
  *
@@ -50,7 +53,7 @@ char	*sqltypes[NTYPES] = {
 	"tinyint", "smallint", "mediumint", "int", "bigint", "float", "double",
 	"numeric", "date", "time", "datetime", "timestamp", "year", "char",
 	"varchar", "tinyblob", "tinytext", "blob", "text", "mediumblob",
-	"mediumtext", "longblob", "longtext", "", ""
+	"mediumtext", "longblob", "longtext", "enum", "set"
 };
 
 /*

@@ -33,6 +33,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2003/07/29 00:30:03  dtynan
+ * Lots of changes.
+ *
  * Revision 1.2  2003/07/28 21:48:39  dtynan
  * Minor tweaks, including fixing some gensync issues.
  *
@@ -56,6 +59,8 @@ struct	column	{
 	struct	column	*next;
 	char		*name;
 	char		*sfname;
+	char		*ufname;
+	char		*dfname;
 	int		type;
 	int		length;
 	int		dprec;
@@ -105,6 +110,7 @@ struct	table	{
 	char		*pfx;
 	struct	column	*chead;
 	struct	column	*ctail;
+	char		*ifname;
 	int		flags;
 };
 
@@ -147,3 +153,4 @@ struct	table	*findtable(char *name);
 struct	table	*getnexttable(struct table *);
 struct	column	*newcolumn(struct table *, char *, int, int, int, int);
 struct	column	*findcolumn(struct table *, char *);
+void		genfuncname(struct table *, char *, char *, int);
