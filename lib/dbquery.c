@@ -35,6 +35,12 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2004/01/26 23:43:21  dtynan
+ * Extensive changes to fix some M4 issues and some library issues.
+ * Removed many of the functions which were used to parse data types
+ * and made them inline instead.  Improved the M4 generator by adding
+ * for loops.
+ *
  * Revision 1.2  2003/10/14 14:10:56  dtynan
  * Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
  * reduce blank lines in the output.
@@ -234,7 +240,6 @@ dbow_query(dbow_conn *c, char *query, ...)
 	va_end(ap);
 	if (n < 0 || (n = qbputc(c, '\0')) < 0)
 		return(-1);
-	printf("QB:[%s]\n", c->qbuff);
 	c->qboff = 0;
 #ifdef DBOW_MYSQL
 	if (mysql_query(c->dbconn, c->qbuff) < 0)
