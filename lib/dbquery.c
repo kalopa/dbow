@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.6  2004/08/04 13:05:22  dtynan
+ * Fixed bug in query code where there are no operands.
+ *
  * Revision 1.5  2004/07/05 11:20:33  dtynan
  * Added support for nested queries.
  *
@@ -175,7 +178,7 @@ dbow_query(dbow_conn *c, char *query, ...)
 		case TYPE_DATE:
 			val = va_arg(ap, int);
 			if (val == 0)
-				n = qbputs(c, "SYSDATE()");
+				n = qbputs(c, "NULL");
 			else {
 				if ((tmp = localtime((time_t *)&val)) == NULL)
 					return(-1);
@@ -190,7 +193,7 @@ dbow_query(dbow_conn *c, char *query, ...)
 		case TYPE_TIME:
 			val = va_arg(ap, int);
 			if (val == 0)
-				n = qbputs(c, "SYSDATE()");
+				n = qbputs(c, "NULL");
 			else {
 				if ((tmp = localtime((time_t *)&val)) == NULL)
 					return(-1);
@@ -205,7 +208,7 @@ dbow_query(dbow_conn *c, char *query, ...)
 		case TYPE_DATETIME:
 			val = va_arg(ap, int);
 			if (val == 0)
-				n = qbputs(c, "SYSDATE()");
+				n = qbputs(c, "NULL");
 			else {
 				if ((tmp = localtime((time_t *)&val)) == NULL)
 					return(-1);
@@ -223,7 +226,7 @@ dbow_query(dbow_conn *c, char *query, ...)
 		case TYPE_TSTAMP:
 			val = va_arg(ap, int);
 			if (val == 0)
-				n = qbputs(c, "SYSDATE()");
+				n = qbputs(c, "NULL");
 			else {
 				if ((tmp = localtime((time_t *)&val)) == NULL)
 					return(-1);
