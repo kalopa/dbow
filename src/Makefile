@@ -33,6 +33,11 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.4  2004/06/25 14:57:23  dtynan
+# Fixed a bug in the C template where forloops weren't working properly.
+# Added a RELEASE file, first pass at a man-page, and the basic hooks
+# for dealing with th %function block.
+#
 # Revision 1.3  2004/01/26 23:43:21  dtynan
 # Extensive changes to fix some M4 issues and some library issues.
 # Removed many of the functions which were used to parse data types
@@ -67,7 +72,7 @@ install: dbow
 	install -C -m 555 dbow $(PREFIX)/bin
 
 clean:
-	rm -f dbow $(OBJS) a.out errs core
+	rm -f dbow $(OBJS) y.tab.h a.out errs core
 
 tags:	$(SRCS)
 	ctags $(SRCS)
