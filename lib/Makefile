@@ -33,6 +33,12 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.3  2004/01/26 23:43:20  dtynan
+# Extensive changes to fix some M4 issues and some library issues.
+# Removed many of the functions which were used to parse data types
+# and made them inline instead.  Improved the M4 generator by adding
+# for loops.
+#
 # Revision 1.2  2003/11/17 13:15:18  dtynan
 # Various changes to fix errors in the back-end code.
 #
@@ -49,8 +55,8 @@ DBOWDIR=$(PREFIX)/share/dbow
 
 CFLAGS=	-Wall -I$(MYSQL_INC) -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\" -DDBOW_MYSQL
 
-SRCS=	dbase.c dbquery.c dbinsid.c dbifdate.c
-OBJS=	dbase.o dbquery.o dbinsid.o dbifdate.o
+SRCS=	dbase.c dbquery.c dbinsid.c dbhowmany.c dbifdate.c
+OBJS=	dbase.o dbquery.o dbinsid.o dbhowmany.o dbifdate.o
 DBOWLIB=libdbow.a
 
 all:	$(DBOWLIB)
