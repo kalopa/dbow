@@ -36,6 +36,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.7  2004/06/28 15:46:42  dtynan
+ * Call the function name 'fname' rather than 'name' which collides too much.
+ *
  * Revision 1.6  2004/06/25 14:57:23  dtynan
  * Fixed a bug in the C template where forloops weren't working properly.
  * Added a RELEASE file, first pass at a man-page, and the basic hooks
@@ -647,7 +650,7 @@ struct	keyword	{
 	{"mediumint",		KW_MEDINT},
 	{"mediumtext",		KW_MEDTEXT},
 	{"national",		KW_NATIONAL},
-	{"fname",		KW_FNAME},
+	{"funcname",		KW_FNAME},
 	{"not",			KW_NOT},
 	{"null",		KW_NULL},
 	{"numeric",		KW_NUMERIC},
