@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2003/07/28 21:48:40  dtynan
+ * Minor tweaks, including fixing some gensync issues.
+ *
  * Revision 1.1  2003/07/28 21:31:57  dtynan
  * First pass at an intelligent front-end for databases.
  */
@@ -43,13 +46,15 @@
 
 #include "dbowint.h"
 
-/*
- *
- */
-int
-str_php(struct table *tp, FILE *fp)
+void
+genphpsearch(struct table *tp, struct column *cp, FILE *fp)
 {
-	printf("Generate PHP structs for table [%s]\n", tp->name);
+	fprintf(fp, "\nfunction findby%s($conn, $%s)\n{\n", cp->name, cp->name);
+	fprintf(fp, "\tglobal $FALSE;\n\n");
+	fprintf(fp, "\tif ($r = $conn->doquery(\"SELECT * FROM ");
+	fprintf(fp, "%s WHERE %s='$%s'\")) {\n", tp->name, cp->name, cp->name);
+	fprintf(fp, "\t\t$this->setfields($r);\n\t}\n");
+	fprintf(fp, "\treturn $r;\n}\n");
 }
 
 /*
@@ -58,5 +63,49 @@ str_php(struct table *tp, FILE *fp)
 int
 code_php(struct table *tp, FILE *fp)
 {
-	printf("Generate PHP code for table [%s]\n", tp->name);
+	struct column *cp;
+
+	fprintf(fp, "class %s {\n", tp->pfx);
+	for (cp = tp->chead; cp != NULL; cp = cp->next)
+		fprintf(fp, "\tvar $%s;\n", cp->name);
+	fputc('\n', fp);
+
+	for (cp = tp->chead; cp != NULL; cp = cp->next) {
+		fprintf(fp, "function get_%s() { return ", cp->name);
+		fprintf(fp, "$this->%s; }\n", cp->name);
+		fprintf(fp, "function set_%s($val) { ", cp->name);
+		fprintf(fp, "$this->%s = $val; }\n", cp->name);
+	}
+
+	fprintf(fp, "\nfunction setfields($r)\n{\n");
+	fprintf(fp, "\t$s = mysql_fetch_array($r);\n");
+	for (cp = tp->chead; cp != NULL; cp = cp->next)
+		fprintf(fp, "\t$this->%s = $s[\"%s\"];\n", cp->name, cp->name);
+	fprintf(fp, "}\n");
+
+	fprintf(fp, "\nfunction insert()\n{\n");
+	fprintf(fp, "\tglobal $FALSE;\n\n");
+	fprintf(fp, "\tif ($r = $conn->doquery(\"INSERT INTO %s ", tp->name);
+	fprintf(fp, "VALUES(");
+	for (cp = tp->chead; cp != NULL; cp = cp->next) {
+		fprintf(fp, "'$this->%s'", cp->name);
+		if (cp->next != NULL)
+			fputc(',', fp);
+	}
+	fprintf(fp, ")\")) {\n");
+	for (cp = tp->chead; cp != NULL; cp = cp->next) {
+		if (cp->flags & FLAG_AUTOINC) {
+			fprintf(fp, "\t\tif ($this->%s == 0)\n", cp->name);
+			fprintf(fp, "\t\t\t$this->%s = mysql_insert_id();\n",
+							cp->name);
+			break;
+		}
+	}
+	fprintf(fp, "\t}\n\treturn $r;\n}\n");
+
+	for (cp = tp->chead; cp != NULL; cp = cp->next) {
+		if (cp->flags & FLAG_SEARCH)
+			genphpsearch(tp, cp, fp);
+	}
+	fprintf(fp, "}\n");
 }
