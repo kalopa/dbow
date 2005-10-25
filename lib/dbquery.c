@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.7  2004/09/08 11:48:49  dtynan
+ * Fixed bug where unset time was being reset.
+ *
  * Revision 1.6  2004/08/04 13:05:22  dtynan
  * Fixed bug in query code where there are no operands.
  *
@@ -167,9 +170,17 @@ dbow_query(dbow_conn *c, char *query, ...)
 			}
 			n = qbputc(c, '\'');
 			while ((ch = *cp++) != '\0' && n >= 0) {
-				if (ch == '\'')
+				switch (ch) {
+				case '\'':
+				case '\\':
 					qbputc(c, '\\');
-				n = qbputc(c, ch);
+					n = qbputc(c, ch);
+					break;
+
+				default:
+					n = qbputc(c, ch);
+					break;
+				}
 			}
 			if (n >= 0)
 				n = qbputc(c, '\'');
@@ -251,8 +262,10 @@ dbow_query(dbow_conn *c, char *query, ...)
 		return(-1);
 	c->qboff = 0;
 #ifdef DBOW_MYSQL
-	if (mysql_query(c->dbconn, c->qbuff) < 0)
+	if (mysql_query(c->dbconn, c->qbuff) < 0) {
+		printf("Query [%s] failed: %s.\n", c->qbuff, mysql_error(c->dbconn));
 		return(-1);
+	}
 	c->dbres = (void *)mysql_store_result((MYSQL *)c->dbconn);
 	return(0);
 #endif
