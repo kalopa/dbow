@@ -17,6 +17,11 @@ It will be extended to support other languages and database constructs
 as required. It currently compiles/runs on FreeBSD/Linux.  It doesn't
 require any other libraries or elements except YACC/Bison.
 
+2005-10-25  dtynan  <dtynan@kalopa.com>
+
+	* Fixed a few bugs since the previous release and incorporated
+	  the changes to the Perl module.
+
 2004-07-05  dtynan  <dtynan@kalopa.com>
 
 	* This is a minor update of the DBOW code to fix some bugs
