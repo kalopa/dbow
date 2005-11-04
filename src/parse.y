@@ -36,6 +36,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.8  2004/06/30 12:21:01  dtynan
+ * Still trying to avoid namespace collisions...
+ *
  * Revision 1.7  2004/06/28 15:46:42  dtynan
  * Call the function name 'fname' rather than 'name' which collides too much.
  *
@@ -388,7 +391,8 @@ class:		  KW_TINYINT
 		| KW_INT
 		{
 			$$ = TYPE_INT;
-			tlen = tprec = 0;
+			tlen = 11;
+			tprec = 0;
 		}
 		| KW_INT '(' number ')'
 		{

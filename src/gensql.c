@@ -35,10 +35,15 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2004/01/26 23:43:21  dtynan
+ * Extensive changes to fix some M4 issues and some library issues.
+ * Removed many of the functions which were used to parse data types
+ * and made them inline instead.  Improved the M4 generator by adding
+ * for loops.
+ *
  * Revision 1.1  2003/10/14 13:00:27  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
- *
  */
 
 #include <stdio.h>
@@ -61,10 +66,11 @@ generatesql(struct table *tp, FILE *fp)
 	int havepk;
 	struct column *cp;
 
-	fprintf(fp, "\nDROP TABLE IF EXISTS %s;\n", tp->name);
-	fprintf(fp, "\nCREATE TABLE %s\n(\n", tp->name);
+	fprintf(fp, "--\n-- Table structure for table `%s`\n--\n\n", tp->name);
+	fprintf(fp, "DROP TABLE IF EXISTS %s;\n", tp->name);
+	fprintf(fp, "CREATE TABLE %s (\n", tp->name);
 	for (cp = tp->chead; cp != NULL; cp = cp->next) {
-		fprintf(fp, "\t%s %s", cp->name, sqltypes[cp->type]);
+		fprintf(fp, "  %s %s", cp->name, sqltypes[cp->type]);
 		if (cp->length > 0) {
 			fprintf(fp, "(%d", cp->length);
 			if (cp->dprec > 0)
@@ -78,7 +84,46 @@ generatesql(struct table *tp, FILE *fp)
 		if (cp->flags & FLAG_UNIQUE)
 			fprintf(fp, " UNIQUE");
 		if (cp->flags & FLAG_AUTOINC)
-			fprintf(fp, " AUTO_INCREMENT");
+			fprintf(fp, " auto_increment");
+		else {
+			fprintf(fp, " default ");
+			if (cp->flags & FLAG_NOTNULL) {
+				switch (cp->type) {
+				case TYPE_TINYINT:
+				case TYPE_SMALLINT:
+				case TYPE_MEDINT:
+				case TYPE_INT:
+				case TYPE_BIGINT:
+				case TYPE_FLOAT:
+				case TYPE_DOUBLE:
+				case TYPE_NUMERIC:
+					fprintf(fp, "'0'");
+					break;
+
+				case TYPE_DATE:
+				case TYPE_TIME:
+				case TYPE_DATETIME:
+				case TYPE_TSTAMP:
+				case TYPE_YEAR:
+					fprintf(fp, "'0000-00-00'");
+					break;
+
+				case TYPE_CHAR:
+				case TYPE_VARCHAR:
+				case TYPE_TINYBLOB:
+				case TYPE_TINYTEXT:
+				case TYPE_BLOB:
+				case TYPE_TEXT:
+				case TYPE_MEDBLOB:
+				case TYPE_MEDTEXT:
+				case TYPE_LONGBLOB:
+				case TYPE_LONGTEXT:
+					fprintf(fp, "''");
+					break;
+				}
+			} else
+				fprintf(fp, "NULL");
+		}
 		fprintf(fp, ",\n");
 	}
 	havepk = 0;
@@ -86,8 +131,7 @@ generatesql(struct table *tp, FILE *fp)
 		if ((cp->flags & FLAG_PRIKEY) == 0)
 			continue;
 		if (havepk == 0) {
-			fprintf(fp, "\tCONSTRAINT PK_%s ", tp->name);
-			fprintf(fp, "PRIMARY KEY (%s", cp->name);
+			fprintf(fp, "  PRIMARY KEY  (%s", cp->name);
 			havepk = 1;
 		} else {
 			fprintf(fp, ", %s", cp->name);
@@ -95,5 +139,5 @@ generatesql(struct table *tp, FILE *fp)
 	}
 	if (havepk)
 		fprintf(fp, ")\n");
-	fprintf(fp, ");\n");
+	fprintf(fp, ") TYPE=MyISAM;\n\n");
 }
