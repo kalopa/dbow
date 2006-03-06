@@ -33,6 +33,11 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.6  2004/06/25 14:57:23  dtynan
+ * Fixed a bug in the C template where forloops weren't working properly.
+ * Added a RELEASE file, first pass at a man-page, and the basic hooks
+ * for dealing with th %function block.
+ *
  * Revision 1.5  2004/05/18 11:18:48  dtynan
  * Deprecated the use of %proto and %code statements.  Also added new
  * keywords which will immediately emit the following block either to
@@ -67,7 +72,7 @@
 #define DBASE_MYSQL	0
 #define NDBASETYPES	1
 
-#define DBOW_VERSION	"0.5"
+#define DBOW_VERSION	"0.8"
 
 /*
  * Structure definition for columns within a table.

@@ -35,6 +35,11 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.7  2004/05/18 11:18:48  dtynan
+ * Deprecated the use of %proto and %code statements.  Also added new
+ * keywords which will immediately emit the following block either to
+ * the include file or to the code file respectively.
+ *
  * Revision 1.6  2004/04/30 12:12:25  dtynan
  * Lots of changes for minor bug fixes, added functionality and the like.
  * Notably the following:
@@ -220,7 +225,7 @@ main(int argc, char *argv[])
 		 */
 		if (fofp != hofp)
 			fileinc(hofile, fofp);
-		doproto(NULL, 0);
+		doproto(ifile, 0);
 		docode(NULL, 0);
 		/*
 		 * Emit the epilog code.
