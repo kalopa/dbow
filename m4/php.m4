@@ -34,6 +34,9 @@ dnl
 dnl ABSTRACT
 dnl
 dnl $Log$
+dnl Revision 1.3  2004/01/28 13:48:08  dtynan
+dnl Updated as per new mechanisms.
+dnl
 dnl Revision 1.2  2003/11/17 13:15:19  dtynan
 dnl Various changes to fix errors in the back-end code.
 dnl
@@ -175,7 +178,7 @@ function $2($x)
 define(SEARCH_BODY,`
 function $2($x)
 {
-	if (!$r = $this->db->mysql_query("SELECT * FROM $1 WHERE STRNAME($1,$3)=$x")) {
+	if (!$r = $this->db->mysql_query("SELECT STRNAME($1,0) forloop(z,1,STR_$1_NELEM0,`,STRNAME($1,z)') FROM $1 WHERE STRNAME($1,$3)=$x")) {
 		$r = $FALSE;
 	} else {
 		$this->setfields($r);

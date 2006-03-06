@@ -250,7 +250,7 @@ sub $2
 	my $dbh = `shift';
 	my $x = `shift';
 
-	my $sth = $dbh->prepare("SELECT * FROM $1 WHERE STRNAME($1,$3) = ?");
+	my $sth = $dbh->prepare("SELECT STRNAME($1,0) forloop(z,1,STR_$1_NELEM0,`,STRNAME($1,z)') FROM $1 WHERE STRNAME($1,$3) = ?");
 	my $rv = $sth->execute($x);
 
 	unless($rv)

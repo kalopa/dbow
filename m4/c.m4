@@ -34,6 +34,9 @@ dnl
 dnl ABSTRACT
 dnl
 dnl $Log$
+dnl Revision 1.11  2004/07/05 11:20:33  dtynan
+dnl Added support for nested queries.
+dnl
 dnl Revision 1.10  2004/06/25 14:57:23  dtynan
 dnl Fixed a bug in the C template where forloops weren't working properly.
 dnl Added a RELEASE file, first pass at a man-page, and the basic hooks
@@ -334,7 +337,7 @@ db_run$1query(dbow_conn *c, char *q)
 struct db_$1 *
 db_find$1first(dbow_conn *c)
 {
-	return(db_run$1query(c, "SELECT * FROM $1"));
+	return(db_run$1query(c, "SELECT STRNAME($1,0) forloop(z,1,STR_$1_NELEM0,`,STRNAME($1,z)') FROM $1"));
 }
 
 struct db_$1 *
@@ -388,7 +391,7 @@ define(SEARCH_BODY,`
 struct db_$1 *
 $2(dbow_conn *c, STYPE($1, $3) x)
 {
-	if (dbow_query(c, "SELECT * FROM $1 WHERE STRNAME($1,$3) = QTYPE($1, $3)", x) < 0)
+	if (dbow_query(c, "SELECT STRNAME($1,0) forloop(z,1,STR_$1_NELEM0,`,STRNAME($1,z)') FROM $1 WHERE STRNAME($1,$3) = QTYPE($1, $3)", x) < 0)
 		return(NULL);
 	return(db_find$1next(c, NULL));
 }')
