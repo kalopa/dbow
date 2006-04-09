@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.8  2005/10/25 07:39:38  dtynan
+ * Fixed bug in string handling.
+ *
  * Revision 1.7  2004/09/08 11:48:49  dtynan
  * Fixed bug where unset time was being reset.
  *
@@ -223,7 +226,7 @@ dbow_query(dbow_conn *c, char *query, ...)
 			else {
 				if ((tmp = localtime((time_t *)&val)) == NULL)
 					return(-1);
-				sprintf(obuf, "'%04d-%02d-%02d%02d:%02d:%02d'",
+				sprintf(obuf, "'%04d-%02d-%02d %02d:%02d:%02d'",
 					tmp->tm_year + 1900,
 					tmp->tm_mon + 1,
 					tmp->tm_mday,
@@ -262,10 +265,8 @@ dbow_query(dbow_conn *c, char *query, ...)
 		return(-1);
 	c->qboff = 0;
 #ifdef DBOW_MYSQL
-	if (mysql_query(c->dbconn, c->qbuff) < 0) {
-		printf("Query [%s] failed: %s.\n", c->qbuff, mysql_error(c->dbconn));
+	if (mysql_query(c->dbconn, c->qbuff) < 0)
 		return(-1);
-	}
 	c->dbres = (void *)mysql_store_result((MYSQL *)c->dbconn);
 	return(0);
 #endif
