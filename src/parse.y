@@ -36,6 +36,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.9  2005/11/04 13:42:58  dtynan
+ * Force the SQL output to look more like mysqldump.
+ *
  * Revision 1.8  2004/06/30 12:21:01  dtynan
  * Still trying to avoid namespace collisions...
  *
@@ -117,7 +120,8 @@ FILE		*fp;
 
 %term	PCENT ERROR
 %term	KW_ARG KW_CODE KW_DELETE KW_DUMP KW_EMIT KW_FUNCTION KW_INSERT
-%term	KW_FNAME KW_PROTO KW_QUERY KW_SEARCH KW_TABLE KW_TYPE KW_UPDATE
+%term	KW_FNAME KW_PROTO KW_SEARCH KW_SORT KW_TABLE KW_TYPE KW_UPDATE
+%term	KW_WHERE
 
 %term	KW_AUTOINCR KW_BIGINT KW_BLOB KW_CHAR KW_DECIMAL KW_DATE KW_DATETIME
 %term	KW_DOUBLE KW_ENUM KW_FLOAT KW_INT KW_KEY KW_LONGBLOB KW_LONGTEXT
@@ -321,11 +325,7 @@ table_def:	  ident class optquals
 		}
 		;
 
-func_def:	  KW_TABLE otname
-		{
-			printf("TABLE:[%s]\n", $2);
-		}
-		| KW_TYPE KW_INSERT
+func_def:	  KW_TYPE KW_INSERT
 		{
 			printf("TYPE-INSERT\n");
 		}
@@ -345,9 +345,13 @@ func_def:	  KW_TABLE otname
 		{
 			printf("FNAME:[%s]\n", $2);
 		}
-		| KW_QUERY string
+		| KW_WHERE string
 		{
-			printf("QUERY:[%s]\n", $2);
+			printf("WHERE:[%s]\n", $2);
+		}
+		| KW_SORT ident
+		{
+			printf("SORT:[%s]\n", $2);
 		}
 		| KW_ARG number ident
 		{
@@ -661,11 +665,11 @@ struct	keyword	{
 	{"precision",		KW_PREC},
 	{"primary",		KW_PRIMARY},
 	{"proto",		KW_PROTO},
-	{"query",		KW_QUERY},
 	{"real",		KW_REAL},
 	{"search",		KW_SEARCH},
 	{"set",			KW_SET},
 	{"smallint",		KW_SMALLINT},
+	{"sort",		KW_SORT},
 	{"table",		KW_TABLE},
 	{"text",		KW_TEXT},
 	{"time",		KW_TIME},
@@ -678,6 +682,7 @@ struct	keyword	{
 	{"unique",		KW_UNIQUE},
 	{"unsigned",		KW_UNSIGNED},
 	{"varchar",		KW_VARCHAR},
+	{"where",		KW_WHERE},
 	{"year",		KW_YEAR},
 	{NULL,			0}
 };
