@@ -33,6 +33,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.5  2004/07/05 11:20:33  dtynan
+ * Added support for nested queries.
+ *
  * Revision 1.4  2004/06/25 14:57:23  dtynan
  * Fixed a bug in the C template where forloops weren't working properly.
  * Added a RELEASE file, first pass at a man-page, and the basic hooks
@@ -68,11 +71,13 @@ typedef	struct	_dbow_conn	{
 	int		qboff;
 	int		qbsize;
 	char		*qbuff;
+	int		trace;
 } dbow_conn;
 
 dbow_conn	*dbow_init(char *, char *, char *, char *);
 void		dbow_close(dbow_conn *);
 int		dbow_query(dbow_conn *, char *, ...);
+void		dbow_trace(dbow_conn *, int);
 char		**dbow_fetch_row(void *);
 void		dbow_free_result(void *);
 int		dbow_insertid(dbow_conn *);

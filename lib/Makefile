@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.4  2004/09/08 11:49:47  dtynan
+# New function to return the number of rows returned by a query.
+#
 # Revision 1.3  2004/01/26 23:43:20  dtynan
 # Extensive changes to fix some M4 issues and some library issues.
 # Removed many of the functions which were used to parse data types
@@ -55,8 +58,8 @@ DBOWDIR=$(PREFIX)/share/dbow
 
 CFLAGS=	-Wall -I$(MYSQL_INC) -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\" -DDBOW_MYSQL
 
-SRCS=	dbase.c dbquery.c dbinsid.c dbhowmany.c dbifdate.c
-OBJS=	dbase.o dbquery.o dbinsid.o dbhowmany.o dbifdate.o
+SRCS=	dbase.c dbquery.c dbinsid.c dbhowmany.c dbifdate.c dbtrace.c
+OBJS=	dbase.o dbquery.o dbinsid.o dbhowmany.o dbifdate.o dbtrace.o
 DBOWLIB=libdbow.a
 
 all:	$(DBOWLIB)
