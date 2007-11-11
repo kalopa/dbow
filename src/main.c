@@ -35,6 +35,10 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.8  2006/03/06 13:02:37  dtynan
+ * Upped the version (oops!) and fixed a bug where the source filename
+ * wasn't being printed in the output file.
+ *
  * Revision 1.7  2004/05/18 11:18:48  dtynan
  * Deprecated the use of %proto and %code statements.  Also added new
  * keywords which will immediately emit the following block either to
@@ -98,8 +102,7 @@ int
 main(int argc, char *argv[])
 {
 	int i;
-	char tmpfname[256];
-	char *cp, *ifile;
+	char tmpfname[256], *cp, *ifile;
 
 	opterr = nflag = mflag = 0;
 	active = NULL;
@@ -219,6 +222,12 @@ main(int argc, char *argv[])
 	yyparse();
 	lexclose();
 	if (nerrors == 0) {
+		/*
+		 * Perform function optimizations and check all
+		 * tables to make sure they have the basic quorum
+		 * of functions.
+		 */
+		functioncleanup();
 		/*
 		 * If we've diverted the prolog to a separate file, then
 		 * we'll need to include it in the main file.
@@ -461,6 +470,16 @@ gentmpf()
 	if (mkstemp(tofile) < 0)
 		return(-1);
 	return((tofp = fopen(tofile, "w")) == NULL ? -1 : 0);
+}
+
+/*
+ *
+ */
+void
+fatal(char *msg)
+{
+	fprintf(stderr, "?dbow: fatal error: %s.\n", msg);
+	exit(1);
 }
 
 /*

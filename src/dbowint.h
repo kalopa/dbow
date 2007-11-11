@@ -33,6 +33,10 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.7  2006/03/06 13:02:37  dtynan
+ * Upped the version (oops!) and fixed a bug where the source filename
+ * wasn't being printed in the output file.
+ *
  * Revision 1.6  2004/06/25 14:57:23  dtynan
  * Fixed a bug in the C template where forloops weren't working properly.
  * Added a RELEASE file, first pass at a man-page, and the basic hooks
@@ -134,6 +138,10 @@ struct	table	{
 	struct	column	*chead;
 	struct	column	*ctail;
 	char		*ifname;
+	int		haveinsert;
+	int		havedelete;
+	int		havesearch;
+	int		haveupdate;
 	int		flags;
 };
 
@@ -144,8 +152,33 @@ struct	table	{
  */
 struct	arg	{
 	struct	arg	*next;
-	int		argno;
-	struct	column	*cname;
+	struct	table	*table;
+	struct	column	*column;
+	char		*name;
+	int		instance;
+	int		type;
+	int		flags;
+	char		*handle;
+};
+
+#define ARGF_POINTER	0x0001
+
+/*
+ * Structure for managing set-lists.
+ */
+struct	set	{
+	struct	set	*next;
+	struct	arg	*lvalue;
+	struct	arg	*rvalue;
+};
+
+/*
+ * Structure for managing joins.
+ */
+struct	join	{
+	struct	join	*next;
+	struct	table	*table;
+	char		*alias;
 };
 
 /*
@@ -153,11 +186,22 @@ struct	arg	{
  */
 struct	func	{
 	struct	func	*next;
+	struct	table	*table;
 	int		type;
+	struct	column	*pkey;
 	char		*name;
+	int		instance;
 	char		*query;
-	struct	arg	*ahead;
-	struct	arg	*atail;
+	char		*where;
+	char		*order;
+	int		limit;
+	int		offset;
+	struct	arg	*args;
+	struct	join	*joins;
+	char		*alias;
+	struct	set	*shead;
+	struct	set	*stail;
+	struct	arg	*rets;
 	int		flags;
 };
 
@@ -169,10 +213,14 @@ struct	type	{
 	char	*m4file;
 	char	*fext;
 	int	cdtype;
+	int	cdargs;
 };
 
 #define CDT_CODE	0
 #define CDT_DBASE	1
+
+#define CDA_NOPROC	0
+#define CDA_XLATE	1
 
 int		debug;
 int		nflag;
@@ -196,15 +244,31 @@ void		fileinc(char *, FILE *);
 FILE		*m4open(char *, struct type *);
 void		m4include(FILE *);
 struct	table	*newtable(char *, int);
-struct	table	*findtable(char *name);
+struct	table	*findtable(char *);
+void		checktables();
+struct	table	*findaliastable(struct func *, char *);
 struct	table	*getnexttable(struct table *);
 struct	column	*newcolumn(struct table *, char *, int, int, int, int);
 struct	column	*findcolumn(struct table *, char *);
+struct	column	*findprimarycolumn(struct table *);
+void		functioncleanup();
 struct	func	*newfunction(char *, int);
+void		gendefaultfunc(struct table *, int, char *);
+void		optimizefunc(struct func *);
+void		dumpfunction(struct func *);
 struct	func	*findfunction(char *);
-struct	arg	*newarg(struct func *, int, struct column *);
+struct	join	*newjoin(char *, char *);
+struct	set	*newset(struct arg *, struct arg *);
+struct	arg	*newarg(struct table *, char *);
 struct	arg	*findarg(struct func *, int);
+void		dumparg(struct arg *);
 void		genfuncname(struct table *, char *, char *, int);
+void		buildinsertsql(struct func *);
+void		builddeletesql(struct func *);
+void		buildsearchsql(struct func *);
+void		buildupdatesql(struct func *);
+void		buildwhereclause(struct func *);
+void		translatesql(struct func *);
 void		generatesql(struct table *, FILE *);
 void		genprolog(char *, FILE *);
 void		gendefs(struct table *, char *, FILE *);
@@ -213,5 +277,6 @@ void		gencode(struct table *, FILE *);
 void		genmidsect(char *, FILE *);
 void		genepilog(FILE *);
 int		yyparse();
+void		fatal(char *);
 void		yyerror(const char *);
 int		gentmpf();

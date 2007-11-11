@@ -36,6 +36,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.10  2006/07/31 08:56:22  dtynan
+ * Added new keywords.
+ *
  * Revision 1.9  2005/11/04 13:42:58  dtynan
  * Force the SQL output to look more like mysqldump.
  *
@@ -111,6 +114,7 @@ FILE		*fp;
 	struct	column	*cval;
 	struct	table	*tval;
 	struct	arg	*aval;
+	struct	set	*setv;
 	struct	func	*fval;
 };
 
@@ -118,25 +122,27 @@ FILE		*fp;
 %term	<sval>	STRING
 %term	<ival>	IDENT
 
-%term	PCENT ERROR
-%term	KW_ARG KW_CODE KW_DELETE KW_DUMP KW_EMIT KW_FUNCTION KW_INSERT
-%term	KW_FNAME KW_PROTO KW_SEARCH KW_SORT KW_TABLE KW_TYPE KW_UPDATE
-%term	KW_WHERE
+%term	PCENT PTR ERROR
+%term	KW_ALIAS KW_ARGS KW_BY KW_CODE KW_DELETE KW_DUMP KW_EMIT KW_FUNCTION
+%term	KW_INSERT KW_JOIN KW_LIMIT KW_NAME KW_OFFSET KW_ORDER KW_PROTO
+%term	KW_RETURNS KW_SEARCH KW_SET KW_SQL KW_TABLE KW_TYPE KW_UPDATE KW_WHERE
 
 %term	KW_AUTOINCR KW_BIGINT KW_BLOB KW_CHAR KW_DECIMAL KW_DATE KW_DATETIME
 %term	KW_DOUBLE KW_ENUM KW_FLOAT KW_INT KW_KEY KW_LONGBLOB KW_LONGTEXT
 %term	KW_MEDBLOB KW_MEDINT KW_MEDTEXT KW_NATIONAL KW_NOT KW_NULL KW_NUMERIC
-%term	KW_PREC KW_PRIMARY KW_REAL KW_SET KW_SMALLINT KW_TEXT KW_TIME KW_TSTAMP
+%term	KW_PREC KW_PRIMARY KW_REAL KW_SMALLINT KW_TEXT KW_TIME KW_TSTAMP
 %term	KW_TINYBLOB KW_TINYINT KW_TINYTEXT KW_UNIQUE KW_UNSIGNED KW_VARCHAR
 %term	KW_YEAR
 
-%term	',' '(' ')' '{' '}' '/'
+%term	'=' ';' ',' '.' '(' ')' '{' '}' '/'
 
-%type	<nval>	number class opttype optquals optqual
+%type	<nval>	number class opttype optquals optqual func_type
 %type	<sval>	string
 %type	<ival>	ident
-%type	<tval>	ntname otname
+%type	<tval>	ntname
 %type	<fval>	nfname
+%type	<aval>	arg arg_list
+%type	<setv>	set set_list
 
 %%
 
@@ -147,10 +153,6 @@ dbow_file:	  /* Empty statement */
 dbow_stmnt:	  emit_stmnt
 		| table_stmnt
 		| function_stmnt
-		| insert_stmnt
-		| delete_stmnt
-		| search_stmnt
-		| update_stmnt
 		| dump_stmnt
 		;
 
@@ -207,65 +209,84 @@ table_stmnt:	  PCENT KW_TABLE ntname '{' table_defs  PCENT '}'
 		;
 
 function_stmnt:	  PCENT opttype KW_FUNCTION nfname '{' func_defs PCENT '}'
+		| PCENT opttype KW_FUNCTION nfname func_def
+		| insert_stmnt
+		| delete_stmnt
+		| search_stmnt
+		| update_stmnt
+		;
+
+insert_stmnt:	  PCENT opttype KW_INSERT nfname optsemi
 		{
-			if (!$2)
-				break;
-			printf("Function is VALID!\n");
+			if ($2)
+				curfunc->type = DBOW_INSERT;
+		}
+		| PCENT opttype KW_INSERT nfname ident optsemi
+		{
+			if ($2) {
+				curfunc->type = DBOW_INSERT;
+				curfunc->name = $5;
+			}
 		}
 		;
 
-insert_stmnt:	  PCENT opttype KW_INSERT otname
+delete_stmnt:	  PCENT opttype KW_DELETE nfname ident optsemi
 		{
-			if ($2)
-				genfuncname($4, NULL, NULL, DBOW_INSERT);
+			if ($2) {
+				curfunc->type = DBOW_DELETE;
+				curfunc->pkey = findcolumn(curfunc->table, $5);
+			}
 		}
-		| PCENT opttype KW_INSERT otname ident
+		| PCENT opttype KW_DELETE nfname ident ident optsemi
 		{
-			if ($2)
-				genfuncname($4, NULL, $5, DBOW_INSERT);
-		}
-		;
-
-delete_stmnt:	  PCENT opttype KW_DELETE otname ident
-		{
-			if ($2)
-				genfuncname($4, $5, NULL, DBOW_DELETE);
-		}
-		| PCENT opttype KW_DELETE otname ident ident
-		{
-			if ($2)
-				genfuncname($4, $5, $6, DBOW_DELETE);
+			if ($2) {
+				curfunc->type = DBOW_DELETE;
+				curfunc->pkey = findcolumn(curfunc->table, $5);
+				curfunc->name = $6;
+			}
 		}
 		;
 
-search_stmnt:	  PCENT opttype KW_SEARCH otname ident
+search_stmnt:	  PCENT opttype KW_SEARCH nfname ident optsemi
 		{
-			if ($2)
-				genfuncname($4, $5, NULL, DBOW_SEARCH);
+			if ($2) {
+				curfunc->type = DBOW_SEARCH;
+				curfunc->pkey = findcolumn(curfunc->table, $5);
+			}
 		}
-		| PCENT opttype KW_SEARCH otname ident ident
+		| PCENT opttype KW_SEARCH nfname ident ident optsemi
 		{
-			if ($2)
-				genfuncname($4, $5, $6, DBOW_SEARCH);
-		}
-		;
-
-update_stmnt:	  PCENT opttype KW_UPDATE otname ident
-		{
-			if ($2)
-				genfuncname($4, $5, NULL, DBOW_UPDATE);
-		}
-		| PCENT opttype KW_UPDATE otname ident ident
-		{
-			if ($2)
-				genfuncname($4, $5, $6, DBOW_UPDATE);
+			if ($2) {
+				curfunc->type = DBOW_SEARCH;
+				curfunc->pkey = findcolumn(curfunc->table, $5);
+				curfunc->name = $6;
+			}
 		}
 		;
 
-dump_stmnt:	  PCENT opttype KW_DUMP otname
+update_stmnt:	  PCENT opttype KW_UPDATE nfname ident optsemi
 		{
-			if ($2)
-				$4->flags |= FLAG_DUMP;
+			if ($2) {
+				curfunc->type = DBOW_UPDATE;
+				curfunc->pkey = findcolumn(curfunc->table, $5);
+			}
+		}
+		| PCENT opttype KW_UPDATE nfname ident ident optsemi
+		{
+			if ($2) {
+				curfunc->type = DBOW_UPDATE;
+				curfunc->pkey = findcolumn(curfunc->table, $5);
+				curfunc->name = $6;
+			}
+		}
+		;
+
+dump_stmnt:	  PCENT opttype KW_DUMP nfname optsemi
+		{
+			if ($2) {
+				curfunc->type = DBOW_OTHER;
+				curfunc->flags |= DBOW_DUMP;
+			}
 		}
 		;
 
@@ -285,32 +306,31 @@ opttype:	  /* Empty */
 		}
 		;
 
+optsemi:	  /* Empty */
+		| ';'
+		;
+
 ntname:		  ident
 		{
 			$$ = curtable = newtable($1, 0);
+			free($1);
 		}
 		;
 
 nfname:		  ident
 		{
 			$$ = curfunc = newfunction($1, 0);
+			free($1);
 		}
 		;
 
-otname:		  ident
-		{
-			if (($$ = findtable($1)) == NULL)
-				yyerror("undefined table");
-		}
-		;
-
-table_defs:	  table_def
-		| table_defs ',' table_def
+table_defs:	  table_def ';'
+		| table_defs table_def ';'
 		;
 
 
 func_defs:	  func_def
-		| func_defs ',' func_def
+		| func_defs func_def
 		;
 
 table_def:	  ident class optquals
@@ -325,37 +345,170 @@ table_def:	  ident class optquals
 		}
 		;
 
-func_def:	  KW_TYPE KW_INSERT
+func_def:	  KW_TYPE func_type ';'
 		{
-			printf("TYPE-INSERT\n");
+			if (curfunc != NULL)
+				curfunc->type = $2;
 		}
-		| KW_TYPE KW_DELETE
+		| KW_TYPE func_type KW_BY ident ';'
 		{
-			printf("TYPE-DELETE\n");
+			struct column *cp;
+
+			if (curfunc == NULL)
+				break;
+			if ((cp = findcolumn(curfunc->table, $4)) == NULL) {
+				yyerror("invalid column name for table");
+				break;
+			}
+			curfunc->type = $2;
+			curfunc->pkey = cp;
 		}
-		| KW_TYPE KW_SEARCH
+		| KW_NAME ident ';'
 		{
-			printf("TYPE-SEARCH\n");
+			if (curfunc != NULL)
+				curfunc->name = $2;
 		}
-		| KW_TYPE KW_UPDATE
+		| KW_SQL string ';'
 		{
-			printf("TYPE-UPDATE\n");
+			if (curfunc != NULL)
+				curfunc->query = strdup($2);
 		}
-		| KW_FNAME ident
+		| KW_WHERE string ';'
 		{
-			printf("FNAME:[%s]\n", $2);
+			if (curfunc != NULL)
+				curfunc->where = strdup($2);
 		}
-		| KW_WHERE string
+		| KW_ORDER string ';'
 		{
-			printf("WHERE:[%s]\n", $2);
+			if (curfunc != NULL)
+				curfunc->order = strdup($2);
 		}
-		| KW_SORT ident
+		| KW_ORDER KW_BY string ';'
 		{
-			printf("SORT:[%s]\n", $2);
+			if (curfunc != NULL)
+				curfunc->order = strdup($3);
 		}
-		| KW_ARG number ident
+		| KW_LIMIT number ';'
 		{
-			printf("ARG%d:[%s]\n", $2, $3);
+			if (curfunc != NULL)
+				curfunc->limit = $2;
+		}
+		| KW_OFFSET number ';'
+		{
+			if (curfunc != NULL)
+				curfunc->offset = $2;
+		}
+		| KW_ARGS arg_list ';'
+		{
+			if (curfunc != NULL)
+				curfunc->args = $2;
+		}
+		| KW_ALIAS ident ';'
+		{
+			if (curfunc != NULL)
+				curfunc->alias = $2;
+		}
+		| KW_JOIN ident ';'
+		{
+			struct join *jp = newjoin($2, NULL);
+
+			if (jp != NULL && jp->table == NULL)
+				yyerror("invalid table for join");
+			else if (curfunc != NULL) {
+				jp->next = curfunc->joins;
+				curfunc->joins = jp;
+			}
+		}
+		| KW_JOIN ident KW_ALIAS ident ';'
+		{
+			struct join *jp = newjoin($2, $4);
+
+			if (jp != NULL && jp->table == NULL)
+				yyerror("invalid table for join");
+			else if (curfunc != NULL) {
+				jp->next = curfunc->joins;
+				curfunc->joins = jp;
+			}
+		}
+		| KW_SET set_list ';'
+		{
+		}
+		| KW_RETURNS arg_list ';'
+		;
+
+func_type:	  KW_INSERT
+		{
+			$$ = DBOW_INSERT;
+		}
+		| KW_SEARCH
+		{
+			$$ = DBOW_SEARCH;
+		}
+		| KW_UPDATE
+		{
+			$$ = DBOW_UPDATE;
+		}
+		| KW_DELETE
+		{
+			$$ = DBOW_DELETE;
+		}
+		;
+
+set_list:	  set
+		| set_list ',' set
+		{
+			struct set *sp = $1;
+
+			while (sp->next != NULL)
+				sp = sp->next;
+			sp->next = $3;
+			$$ = $1;
+		}
+		;
+
+set:		  arg '=' arg
+		{
+			$$ = newset($1, $3);
+		}
+		;
+
+arg_list:	  arg
+		| arg_list ',' arg
+		{
+			struct arg *ap = $1;
+
+			while (ap->next != NULL)
+				ap = ap->next;
+			ap->next = $3;
+			$$ = $1;
+		}
+		;
+
+arg:		  ident
+		{
+			if (curfunc == NULL)
+				break;
+			$$ = newarg(curfunc->table, $1);
+			if ($$->column == NULL)
+				yyerror("invalid column name");
+		}
+		| ident '.' ident
+		{
+			struct table *tp;
+
+			if (curfunc == NULL)
+				break;
+			if ((tp = findaliastable(curfunc, $1)) == NULL)
+				yyerror("invalid table for argument");
+			else
+				$$ = newarg(tp, $3);
+		}
+		| ident PTR ident
+		{
+			if (curfunc == NULL)
+				break;
+			$$ = newarg(curfunc->table, $3);
+			$$->handle = $1;
 		}
 		;
 
@@ -632,10 +785,12 @@ struct	keyword	{
 	char	*name;
 	int	value;
 } keywords[] = {
-	{"arg",			KW_ARG},
+	{"alias",		KW_ALIAS},
+	{"args",		KW_ARGS},
 	{"auto_increment",	KW_AUTOINCR},
 	{"bigint",		KW_BIGINT},
 	{"blob",		KW_BLOB},
+	{"by",			KW_BY},
 	{"char",		KW_CHAR},
 	{"code",		KW_CODE},
 	{"decimal",		KW_DECIMAL},
@@ -651,25 +806,30 @@ struct	keyword	{
 	{"insert",		KW_INSERT},
 	{"int",			KW_INT},
 	{"integer",		KW_INT},
+	{"join",		KW_JOIN},
 	{"key",			KW_KEY},
+	{"limit",		KW_LIMIT},
 	{"longblob",		KW_LONGBLOB},
 	{"longtext",		KW_LONGTEXT},
 	{"mediumblob",		KW_MEDBLOB},
 	{"mediumint",		KW_MEDINT},
 	{"mediumtext",		KW_MEDTEXT},
 	{"national",		KW_NATIONAL},
-	{"funcname",		KW_FNAME},
+	{"name",		KW_NAME},
 	{"not",			KW_NOT},
 	{"null",		KW_NULL},
 	{"numeric",		KW_NUMERIC},
+	{"offset",		KW_OFFSET},
+	{"order",		KW_ORDER},
 	{"precision",		KW_PREC},
 	{"primary",		KW_PRIMARY},
 	{"proto",		KW_PROTO},
 	{"real",		KW_REAL},
+	{"returns",		KW_RETURNS},
 	{"search",		KW_SEARCH},
 	{"set",			KW_SET},
+	{"sql",			KW_SQL},
 	{"smallint",		KW_SMALLINT},
-	{"sort",		KW_SORT},
 	{"table",		KW_TABLE},
 	{"text",		KW_TEXT},
 	{"time",		KW_TIME},
@@ -738,6 +898,10 @@ lexline()
 	lineno++;
 	if ((cp = strpbrk(input, "\r\n")) != NULL)
 		*cp = '\0';
+#ifdef YYDEBUG
+	if (yydebug)
+		printf("Line %d: [%s]\n", lineno, input);
+#endif
 	return(0);
 }
 
@@ -795,7 +959,10 @@ yylex()
 	 * if we can do this the easy way...
 	 */
 	switch (*inptr) {
+	case '=':
+	case ';':
 	case ',':
+	case '.':
 	case '(':
 	case ')':
 	case '{':
@@ -805,6 +972,17 @@ yylex()
 		 * A special character - just return it as-is.
 		 */
 		return(*inptr++);
+
+	case '-':
+		/*
+		 * Oops!  We might have a pointer specifier.
+		 */
+		inptr++;
+		if (*inptr == '>') {
+			inptr++;
+			return(PTR);
+		}
+		return('-');
 
 	case '"':
 		/*
@@ -878,7 +1056,7 @@ void
 yyerror(const char *msg)
 {
 	if (filename != NULL && lineno > 0)
-		fprintf(stderr, "\"%s\", line %d: ", filename, lineno);
-	fprintf(stderr, "%s.\n", msg);
+		printf("\"%s\", line %d: ", filename, lineno);
+	printf("%s.\n", msg);
 	nerrors++;
 }

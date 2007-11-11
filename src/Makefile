@@ -33,6 +33,9 @@
 # ABSTRACT
 #
 # $Log$
+# Revision 1.5  2004/09/08 11:51:46  dtynan
+# Remove the y.tab.h file during a clean.
+#
 # Revision 1.4  2004/06/25 14:57:23  dtynan
 # Fixed a bug in the C template where forloops weren't working properly.
 # Added a RELEASE file, first pass at a man-page, and the basic hooks
@@ -60,24 +63,28 @@ MYSQL_LIB=/usr/local/lib/mysql
 PREFIX?=/usr/local
 DBOWDIR=$(PREFIX)/share/dbow
 
-CFLAGS=	-g -Wall -I$(MYSQL_INC) -I../lib -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\"
+CFLAGS=	-g -Wall -I$(MYSQL_INC) -I../lib -DDEBUG -DYYDEBUG -DDBOW=\"$(DBOWDIR)\" -DDBOW_MYSQL
 
 SRCS=	main.c table.c function.c type.c parse.y gencode.c gensql.c
 OBJS=	main.o table.o function.o type.o parse.o gencode.o gensql.o
+EXES=	dbow dbowgen
 
-all:	dbow
+all:	$(EXES)
 
-install: dbow
+install: $(EXES)
 	install -d $(DBOWDIR)
-	install -C -m 555 dbow $(PREFIX)/bin
+	install -C -m 555 $(EXES) $(PREFIX)/bin
 
 clean:
-	rm -f dbow $(OBJS) y.tab.h a.out errs core
+	rm -f $(EXES) $(OBJS) dbowgen.o y.tab.h a.out errs core
 
 tags:	$(SRCS)
 	ctags $(SRCS)
 
 dbow:	$(OBJS)
 	$(CC) -o dbow $(OBJS)
+
+dbowgen: dbowgen.o
+	$(CC) -o dbowgen dbowgen.o -L../lib -L$(MYSQL_LIB) -ldbow -lmysqlclient
 
 $(OBJS): dbowint.h

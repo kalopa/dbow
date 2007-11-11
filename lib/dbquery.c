@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.9  2006/04/09 15:51:22  dtynan
+ * Fixed bug with date/time format.
+ *
  * Revision 1.8  2005/10/25 07:39:38  dtynan
  * Fixed bug in string handling.
  *
@@ -265,6 +268,7 @@ dbow_query(dbow_conn *c, char *query, ...)
 		return(-1);
 	c->qboff = 0;
 #ifdef DBOW_MYSQL
+	printf("Q:[%s]\n", c->qbuff);
 	if (mysql_query(c->dbconn, c->qbuff) < 0)
 		return(-1);
 	c->dbres = (void *)mysql_store_result((MYSQL *)c->dbconn);

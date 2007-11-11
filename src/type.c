@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.4  2004/01/28 13:53:17  dtynan
+ * Minor bug fixes and modifications prior to new release 0.3
+ *
  * Revision 1.3  2004/01/26 23:43:21  dtynan
  * Extensive changes to fix some M4 issues and some library issues.
  * Removed many of the functions which were used to parse data types
@@ -64,11 +67,11 @@
 #endif
 
 struct	type	types[] = {
-	{"c", "c.m4", "c", CDT_CODE},
-	{"c++", "c++.m4", "cpp", CDT_CODE},
-	{"perl", "perl.m4", "p", CDT_CODE},
-	{"php", "php.m4", "php", CDT_CODE},
-	{"mysql", "mysql.m4", "sql", CDT_DBASE},
+	{"c", "c.m4", "c", CDT_CODE, CDA_XLATE},
+	{"c++", "c++.m4", "cpp", CDT_CODE, CDA_XLATE},
+	{"perl", "perl.m4", "p", CDT_CODE, CDA_NOPROC},
+	{"php", "php.m4", "php", CDT_CODE, CDA_NOPROC},
+	{"mysql", "mysql.m4", "sql", CDT_DBASE, CDA_NOPROC},
 	{NULL,NULL,NULL,0}
 };
 

@@ -35,6 +35,9 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.3  2005/11/04 13:42:58  dtynan
+ * Force the SQL output to look more like mysqldump.
+ *
  * Revision 1.2  2004/01/26 23:43:21  dtynan
  * Extensive changes to fix some M4 issues and some library issues.
  * Removed many of the functions which were used to parse data types
@@ -47,8 +50,11 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "dbowint.h"
+#include "dbow.h"
 
 char	*sqltypes[NTYPES] = {
 	"tinyint", "smallint", "mediumint", "int", "bigint", "float", "double",
@@ -56,6 +62,268 @@ char	*sqltypes[NTYPES] = {
 	"varchar", "tinyblob", "tinytext", "blob", "text", "mediumblob",
 	"mediumtext", "longblob", "longtext", "enum", "set"
 };
+
+char	buffer[4096];
+
+/*
+ *
+ */
+void
+prtablename(char *xp, char *tname, char *alias)
+{
+	sprintf(xp, "%s", tname);
+	if (alias != NULL) {
+		xp = strchr(xp, '\0');
+		sprintf(xp, " %s", alias);
+	}
+}
+
+/*
+ *
+ */
+void
+dosetcols(char *xp, struct column *cp)
+{
+	int argno = 0;
+
+	strcpy(xp, " SET ");
+	xp += 5;
+	while (cp != NULL) {
+		if (argno++ > 0)
+			*xp++ = ',';
+		sprintf(xp, "%s=$%d", cp->name, argno);
+		xp = strchr(xp, '\0');
+		cp = cp->next;
+	}
+}
+
+/*
+ *
+ */
+void
+doselectcols(char *xp, struct column *cp, char *prefix)
+{
+	int first = 1;
+
+	while (cp != NULL) {
+		if (!first)
+			*xp++ = ',';
+		first = 0;
+		if (prefix)
+			sprintf(xp, "%s.%s", prefix, cp->name);
+		else
+			sprintf(xp, "%s", cp->name);
+		cp = cp->next;
+		xp = strchr(xp, '\0');
+	}
+}
+
+/*
+ *
+ */
+void
+buildinsertsql(struct func *fp)
+{
+	char *xp;
+
+	strcpy(buffer, "INSERT INTO ");
+	xp = &buffer[12];
+	prtablename(xp, fp->table->name, fp->alias);
+	xp = strchr(buffer, '\0');
+	dosetcols(xp, fp->table->chead);
+	fp->query = strdup(buffer);
+}
+
+/*
+ *
+ */
+void
+builddeletesql(struct func *fp)
+{
+	char *xp;
+
+	strcpy(buffer, "DELETE FROM ");
+	xp = &buffer[12];
+	prtablename(xp, fp->table->name, fp->alias);
+	xp = strchr(buffer, '\0');
+	if (fp->where != NULL)
+		sprintf(xp, " WHERE %s", fp->where);
+	fp->query = strdup(buffer);
+}
+
+/*
+ *
+ */
+void
+buildsearchsql(struct func *fp)
+{
+	char *xp;
+	struct join *jp;
+
+	sprintf(buffer, "SELECT ");
+	xp = strchr(buffer, '\0');
+	if (fp->joins != NULL) {
+		if (fp->alias != NULL)
+			doselectcols(xp, fp->table->chead, fp->alias);
+		else
+			doselectcols(xp, fp->table->chead, fp->table->name);
+	} else
+		doselectcols(xp, fp->table->chead, fp->alias);
+	strcat(buffer, " FROM ");
+	xp = strchr(buffer, '\0');
+	prtablename(xp, fp->table->name, fp->alias);
+	xp = strchr(buffer, '\0');
+	/*
+	 * Do joins...
+	 */
+	for (jp = fp->joins; jp != NULL; jp = jp->next) {
+		*xp++ = ',';
+		prtablename(xp, jp->table->name, jp->alias);
+		xp = strchr(buffer, '\0');
+	}
+	/*
+	 * Where clause...
+	 */
+	if (fp->where != NULL) {
+		sprintf(xp, " WHERE %s", fp->where);
+		xp = strchr(buffer, '\0');
+	}
+	/*
+	 * Order by clause...
+	 */
+	if (fp->order != NULL) {
+		sprintf(xp, " ORDER BY %s", fp->order);
+		xp = strchr(buffer, '\0');
+	}
+	/*
+	 * Limit clause...
+	 */
+	if (fp->limit > 0) {
+		if (fp->offset > 0)
+			sprintf(xp, " LIMIT %d,%d", fp->offset, fp->limit);
+		else
+			sprintf(xp, " LIMIT %d", fp->limit);
+	} else if (fp->offset > 0)
+		sprintf(xp, " LIMIT %d,999999999999", fp->offset);
+	fp->query = strdup(buffer);
+}
+
+/*
+ *
+ */
+void
+buildupdatesql(struct func *fp)
+{
+	char *xp;
+
+	strcpy(buffer, "UPDATE ");
+	xp = &buffer[7];
+	prtablename(xp, fp->table->name, fp->alias);
+	xp = strchr(xp, '\0');
+	dosetcols(xp, fp->table->chead);
+	xp = strchr(xp, '\0');
+	if (fp->where != NULL)
+		sprintf(xp, " WHERE %s", fp->where);
+	fp->query = strdup(buffer);
+}
+
+/*
+ *
+ */
+void
+buildwhereclause(struct func *fp)
+{
+	int argno = 0;
+	char *xp;
+	struct arg *ap, *atail;
+	struct column *cp;
+
+	if (fp->type != DBOW_SEARCH && fp->type != DBOW_UPDATE && \
+						fp->type != DBOW_DELETE)
+		return;
+	fp->args = NULL;
+	if (fp->pkey != NULL) {
+		sprintf(buffer, "%s=$1", fp->pkey->name);
+		fp->where = strdup(buffer);
+		fp->args = newarg(fp->table, fp->pkey->name);
+	} else {
+		xp = buffer;
+		for (cp = fp->table->chead; cp != NULL; cp = cp->next) {
+			if ((cp->flags & FLAG_PRIKEY) == 0)
+				continue;
+			if (argno++ > 0) {
+				strcpy(xp, " AND ");
+				xp += 5;
+			}
+			sprintf(xp, "%s=$%d", cp->name, argno);
+			xp = strchr(xp, '\0');
+			ap = newarg(fp->table, cp->name);
+			if (fp->args == NULL)
+				fp->args = ap;
+			else
+				atail->next = ap;
+			atail = ap;
+		}
+		*xp = '\0';
+		fp->where = strdup(buffer);
+	}
+}
+
+/*
+ *
+ */
+void
+translatesql(struct func *fp)
+{
+	int state, push, argno;
+	char *cp, *cp2;
+	struct arg *ap;
+
+	/*
+	 * Run through the SQL and convert the arg callouts to special
+	 * place-holders for dbow_query to rewrite.
+	 */
+	printf("BEFORE: [%s]\n", fp->query);
+	for (state = 0, cp = fp->query; *cp; cp++) {
+		switch (state) {
+		case 0:
+			if (*cp == '"' || *cp == '\'') {
+				push = *cp;
+				state = 1;
+			} else if (*cp == '$') {
+				cp2 = cp;
+				argno = 0;
+				state = 2;
+			}
+			break;
+
+		case 1:
+			if (*cp == push)
+				state = 0;
+			break;
+
+		case 2:
+			if (isdigit(*cp)) {
+				argno = argno * 10 + *cp - '0';
+				break;
+			}
+			/*
+			 * Found termination.
+			 */
+#if 0
+			ap = findarg(fp, argno);
+			ap = fp->args;
+			while (--argno > 0)
+				if (ap->next != NULL)
+					ap = ap->next;
+			printf("Arg: %d (%s)\n", argno, ap->column->name);
+#endif
+			state = 0;
+			break;
+		}
+	}
+	printf("AFTER: [%s]\n", fp->query);
+}
 
 /*
  *

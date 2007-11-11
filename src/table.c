@@ -35,6 +35,12 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2004/01/26 23:43:21  dtynan
+ * Extensive changes to fix some M4 issues and some library issues.
+ * Removed many of the functions which were used to parse data types
+ * and made them inline instead.  Improved the M4 generator by adding
+ * for loops.
+ *
  * Revision 1.1  2003/10/14 13:00:28  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
@@ -47,6 +53,7 @@
 #include <ctype.h>
 
 #include "dbowint.h"
+#include "dbow.h"
 
 struct	table	*thead, *ttail;
 
@@ -94,6 +101,26 @@ findtable(char *name)
 		if (strcasecmp(name, tp->name) == 0)
 			return(tp);
 	return(NULL);
+}
+
+/*
+ *
+ */
+void
+checktables()
+{
+	struct table *tp;
+
+	for (tp = thead; tp != NULL; tp = tp->next) {
+		if (!tp->haveinsert)
+			gendefaultfunc(tp, DBOW_INSERT, NULL);
+		if (!tp->havedelete)
+			gendefaultfunc(tp, DBOW_DELETE, NULL);
+		if (!tp->havesearch)
+			gendefaultfunc(tp, DBOW_SEARCH, NULL);
+		if (!tp->haveupdate)
+			gendefaultfunc(tp, DBOW_UPDATE, NULL);
+	}
 }
 
 /*
@@ -147,6 +174,20 @@ findcolumn(struct table *root, char *name)
 
 	for (cp = root->chead; cp != NULL; cp = cp->next)
 		if (strcasecmp(cp->name, name) == 0)
+			return(cp);
+	return(NULL);
+}
+
+/*
+ *
+ */
+struct column *
+findprimarycolumn(struct table *root)
+{
+	struct column *cp;
+
+	for (cp = root->chead; cp != NULL; cp = cp->next)
+		if (cp->flags & FLAG_PRIKEY)
 			return(cp);
 	return(NULL);
 }
