@@ -35,6 +35,12 @@
  * ABSTRACT
  *
  * $Log$
+ * Revision 1.2  2004/01/26 23:43:21  dtynan
+ * Extensive changes to fix some M4 issues and some library issues.
+ * Removed many of the functions which were used to parse data types
+ * and made them inline instead.  Improved the M4 generator by adding
+ * for loops.
+ *
  * Revision 1.1  2003/10/14 13:00:21  dtynan
  * Major revision of the DBOW code to use M4 as a back-end instead of
  * hard-coding the output.
@@ -44,11 +50,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "dbow.h"
+
 #ifdef DBOW_MYSQL
 #include "mysql.h"
+#if defined(__APPLE__) && defined(__MACH__)
+#  define DBSOCK	"/tmp/mysql.sock"
+#else
+#  define DBSOCK	NULL
 #endif
-
-#include "dbow.h"
+#endif
 
 /*
  *
@@ -63,7 +74,7 @@ dbow_init(char *host, char *user, char *pwd, char *dbase)
 		return(NULL);
 	if ((conn->dbconn = (void *)mysql_init(NULL)) == NULL ||
 				mysql_real_connect(conn->dbconn,
-				host, user, pwd, dbase, 0, NULL, 0) == NULL) {
+				host, user, pwd, dbase, 0, DBSOCK, 0) == NULL) {
 		free((void *)conn);
 		return(NULL);
 	}
