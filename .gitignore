@@ -3,6 +3,7 @@
 *.ko
 *.obj
 *.elf
+y.tab.h
 
 # Precompiled Headers
 *.gch
@@ -27,6 +28,7 @@
 *.i*86
 *.x86_64
 *.hex
+dbow
 
 # Debug files
 *.dSYM/
