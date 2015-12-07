@@ -1,7 +1,5 @@
 divert(-1)dnl
 dnl
-dnl $Id$
-dnl
 dnl Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
 dnl
 dnl This is free software; you can redistribute it and/or modify it
@@ -31,19 +29,6 @@ dnl LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 dnl NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 dnl SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 dnl
-dnl ABSTRACT
-dnl
-dnl $Log$
-dnl Revision 1.3  2004/01/28 13:48:08  dtynan
-dnl Updated as per new mechanisms.
-dnl
-dnl Revision 1.2  2003/11/17 13:15:19  dtynan
-dnl Various changes to fix errors in the back-end code.
-dnl
-dnl Revision 1.1  2003/10/14 13:00:24  dtynan
-dnl Major revision of the DBOW code to use M4 as a back-end instead of
-dnl hard-coding the output.
-dnl
 define(`M4FILE',`php.m4')
 define(`FILE_PROLOG',`define(`FILENAME',`$1')
 /*
@@ -53,7 +38,6 @@ define(`FILE_PROLOG',`define(`FILENAME',`$1')
  * generated.  Changes to this file will be lost.
  *
  * Source is "FILENAME"
- * Template is "$Id$"
  */
 ')
 define(`FILE_EPILOG',`

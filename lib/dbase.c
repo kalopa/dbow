@@ -1,8 +1,4 @@
-#ident "$Id$"
-
 /*
- * $Id$
- *
  * Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -31,20 +27,6 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * ABSTRACT
- *
- * $Log$
- * Revision 1.2  2004/01/26 23:43:21  dtynan
- * Extensive changes to fix some M4 issues and some library issues.
- * Removed many of the functions which were used to parse data types
- * and made them inline instead.  Improved the M4 generator by adding
- * for loops.
- *
- * Revision 1.1  2003/10/14 13:00:21  dtynan
- * Major revision of the DBOW code to use M4 as a back-end instead of
- * hard-coding the output.
- *
  */
 
 #include <stdio.h>

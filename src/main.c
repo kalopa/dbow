@@ -1,8 +1,4 @@
-#ident "$Id$"
-
 /*
- * $Id$
- *
  * Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -31,50 +27,6 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * ABSTRACT
- *
- * $Log$
- * Revision 1.8  2006/03/06 13:02:37  dtynan
- * Upped the version (oops!) and fixed a bug where the source filename
- * wasn't being printed in the output file.
- *
- * Revision 1.7  2004/05/18 11:18:48  dtynan
- * Deprecated the use of %proto and %code statements.  Also added new
- * keywords which will immediately emit the following block either to
- * the include file or to the code file respectively.
- *
- * Revision 1.6  2004/04/30 12:12:25  dtynan
- * Lots of changes for minor bug fixes, added functionality and the like.
- * Notably the following:
- *     o	Added a 'db_findXXXfirst()' function for searching the entired
- * 	table.
- *     o	Added a 'db_runXXXquery()' function which will run an SQL
- * 	statement (without parsing any arguments) and return the
- * 	first match.
- *     o	Fixed a bug where the include() m4 statement was being used
- * 	more than once.
- *     o	Put the 'EMIT' code at the bottom of the output file.
- *
- * Revision 1.5  2004/01/28 13:53:17  dtynan
- * Minor bug fixes and modifications prior to new release 0.3
- *
- * Revision 1.4  2004/01/26 23:43:21  dtynan
- * Extensive changes to fix some M4 issues and some library issues.
- * Removed many of the functions which were used to parse data types
- * and made them inline instead.  Improved the M4 generator by adding
- * for loops.
- *
- * Revision 1.3  2003/11/17 13:15:20  dtynan
- * Various changes to fix errors in the back-end code.
- *
- * Revision 1.2  2003/10/14 14:10:56  dtynan
- * Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
- * reduce blank lines in the output.
- *
- * Revision 1.1  2003/10/14 13:00:28  dtynan
- * Major revision of the DBOW code to use M4 as a back-end instead of
- * hard-coding the output.
  */
 #include <stdio.h>
 #include <stdlib.h>

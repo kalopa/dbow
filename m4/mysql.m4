@@ -1,6 +1,4 @@
 dnl
-dnl $Id$
-dnl
 dnl Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
 dnl
 dnl This is free software; you can redistribute it and/or modify it
@@ -30,10 +28,6 @@ dnl LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 dnl NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 dnl SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 dnl
-dnl ABSTRACT
-dnl
-dnl $Log$
-dnl
 define(`LSYNC',`')
 define(`M4FILE',`mysql.m4')
 define(`FILE_PROLOG',`define(`FILENAME',`$1')
@@ -44,7 +38,6 @@ define(`FILE_PROLOG',`define(`FILENAME',`$1')
 # generated.  Changes to this file will be lost.
 #
 # Source is "FILENAME"
-# Template is "$Id$"
 #
 ')
 define(`FILE_EPILOG',`

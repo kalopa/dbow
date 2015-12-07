@@ -1,8 +1,4 @@
-#ident "$Id$"
-
 /*
- * $Id$
- *
  * Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -31,44 +27,6 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * ABSTRACT
- *
- * $Log$
- * Revision 1.10  2007/11/11 14:04:33  dtynan
- * First benchmark check-in of new functionality.
- *
- * Revision 1.9  2006/04/09 15:51:22  dtynan
- * Fixed bug with date/time format.
- *
- * Revision 1.8  2005/10/25 07:39:38  dtynan
- * Fixed bug in string handling.
- *
- * Revision 1.7  2004/09/08 11:48:49  dtynan
- * Fixed bug where unset time was being reset.
- *
- * Revision 1.6  2004/08/04 13:05:22  dtynan
- * Fixed bug in query code where there are no operands.
- *
- * Revision 1.5  2004/07/05 11:20:33  dtynan
- * Added support for nested queries.
- *
- * Revision 1.4  2004/01/26 23:45:11  dtynan
- * Removed debug printf.
- *
- * Revision 1.3  2004/01/26 23:43:21  dtynan
- * Extensive changes to fix some M4 issues and some library issues.
- * Removed many of the functions which were used to parse data types
- * and made them inline instead.  Improved the M4 generator by adding
- * for loops.
- *
- * Revision 1.2  2003/10/14 14:10:56  dtynan
- * Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
- * reduce blank lines in the output.
- *
- * Revision 1.1  2003/10/14 13:00:23  dtynan
- * Major revision of the DBOW code to use M4 as a back-end instead of
- * hard-coding the output.
  */
 
 #include <stdio.h>

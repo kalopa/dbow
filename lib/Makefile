@@ -1,6 +1,4 @@
 #
-# $Id$
-#
 # Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it
@@ -29,26 +27,6 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# ABSTRACT
-#
-# $Log$
-# Revision 1.4  2004/09/08 11:49:47  dtynan
-# New function to return the number of rows returned by a query.
-#
-# Revision 1.3  2004/01/26 23:43:20  dtynan
-# Extensive changes to fix some M4 issues and some library issues.
-# Removed many of the functions which were used to parse data types
-# and made them inline instead.  Improved the M4 generator by adding
-# for loops.
-#
-# Revision 1.2  2003/11/17 13:15:18  dtynan
-# Various changes to fix errors in the back-end code.
-#
-# Revision 1.1  2003/10/14 13:00:20  dtynan
-# Major revision of the DBOW code to use M4 as a back-end instead of
-# hard-coding the output.
-#
 #
 MYSQL_INC=/usr/local/include/mysql
 MYSQL_LIB=/usr/local/lib/mysql

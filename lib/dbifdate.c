@@ -1,8 +1,4 @@
-#ident "$Id$"
-
 /*
- * $Id$
- *
  * Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -31,16 +27,6 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * ABSTRACT
- *
- * $Log$
- * Revision 1.2  2003/11/17 13:15:19  dtynan
- * Various changes to fix errors in the back-end code.
- *
- * Revision 1.1  2003/10/14 13:00:23  dtynan
- * Major revision of the DBOW code to use M4 as a back-end instead of
- * hard-coding the output.
  */
 
 #include <stdio.h>

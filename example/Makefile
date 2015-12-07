@@ -1,6 +1,4 @@
 #
-# $Id$
-#
 # Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it
@@ -29,38 +27,6 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# ABSTRACT
-#
-# $Log$
-# Revision 1.6  2004/04/30 11:48:29  dtynan
-# Lots of changes for minor bug fixes, added functionality and the like.
-# Notably the following:
-#     o	Added a 'db_findXXXfirst()' function for searching the entired
-# 	table.
-#     o	Added a 'db_runXXXquery()' function which will run an SQL
-# 	statement (without parsing any arguments) and return the
-# 	first match.
-#     o	Fixed a bug where the include() m4 statement was being used
-# 	more than once.
-#     o	Put the 'EMIT' code at the bottom of the output file.
-#
-# Revision 1.5  2004/01/28 13:53:57  dtynan
-# Minor changes prior to 0.3 release.
-#
-# Revision 1.4  2004/01/26 23:46:46  dtynan
-# Don't produce a separate include file.
-#
-# Revision 1.3  2003/11/17 13:15:16  dtynan
-# Various changes to fix errors in the back-end code.
-#
-# Revision 1.2  2003/10/14 14:10:56  dtynan
-# Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
-# reduce blank lines in the output.
-#
-# Revision 1.1  2003/10/14 13:00:18  dtynan
-# Major revision of the DBOW code to use M4 as a back-end instead of
-# hard-coding the output.
 #
 .SUFFIXES:	.d .sql .m4
 

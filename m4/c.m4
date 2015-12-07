@@ -1,7 +1,5 @@
 divert(-1)dnl
 dnl
-dnl $Id$
-dnl
 dnl Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
 dnl
 dnl This is free software; you can redistribute it and/or modify it
@@ -31,60 +29,6 @@ dnl LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 dnl NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 dnl SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 dnl
-dnl ABSTRACT
-dnl
-dnl $Log$
-dnl Revision 1.11  2004/07/05 11:20:33  dtynan
-dnl Added support for nested queries.
-dnl
-dnl Revision 1.10  2004/06/25 14:57:23  dtynan
-dnl Fixed a bug in the C template where forloops weren't working properly.
-dnl Added a RELEASE file, first pass at a man-page, and the basic hooks
-dnl for dealing with th %function block.
-dnl
-dnl Revision 1.9  2004/05/18 11:18:48  dtynan
-dnl Deprecated the use of %proto and %code statements.  Also added new
-dnl keywords which will immediately emit the following block either to
-dnl the include file or to the code file respectively.
-dnl
-dnl Revision 1.8  2004/04/30 11:48:29  dtynan
-dnl Lots of changes for minor bug fixes, added functionality and the like.
-dnl Notably the following:
-dnl     o	Added a 'db_findXXXfirst()' function for searching the entired
-dnl 	table.
-dnl     o	Added a 'db_runXXXquery()' function which will run an SQL
-dnl 	statement (without parsing any arguments) and return the
-dnl 	first match.
-dnl     o	Fixed a bug where the include() m4 statement was being used
-dnl 	more than once.
-dnl     o	Put the 'EMIT' code at the bottom of the output file.
-dnl
-dnl Revision 1.7  2004/02/02 12:45:22  dtynan
-dnl Added missing include files.
-dnl
-dnl Revision 1.6  2004/01/28 18:57:58  dtynan
-dnl Fixed another couple of minor gotcha's.
-dnl
-dnl Revision 1.5  2004/01/28 13:48:08  dtynan
-dnl Updated as per new mechanisms.
-dnl
-dnl Revision 1.4  2004/01/26 23:43:21  dtynan
-dnl Extensive changes to fix some M4 issues and some library issues.
-dnl Removed many of the functions which were used to parse data types
-dnl and made them inline instead.  Improved the M4 generator by adding
-dnl for loops.
-dnl
-dnl Revision 1.3  2003/11/17 13:15:19  dtynan
-dnl Various changes to fix errors in the back-end code.
-dnl
-dnl Revision 1.2  2003/10/14 14:10:56  dtynan
-dnl Some fixes for SQL and C, as well as 'dnl' lines in the M4 templates to
-dnl reduce blank lines in the output.
-dnl
-dnl Revision 1.1  2003/10/14 13:00:24  dtynan
-dnl Major revision of the DBOW code to use M4 as a back-end instead of
-dnl hard-coding the output.
-dnl
 define(`M4FILE',`c.m4')
 define(`FILE_PROLOG',`define(`FILENAME',`$1')
 /*
@@ -94,7 +38,6 @@ define(`FILE_PROLOG',`define(`FILENAME',`$1')
  * generated.  Changes to this file will be lost.
  *
  * Source is "FILENAME"
- * Template is "$Id$"
  */
 #include "dbow.h"
 ')

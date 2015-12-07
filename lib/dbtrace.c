@@ -1,8 +1,4 @@
-#ident "$Id$"
-
 /*
- * $Id$
- *
  * Copyright (c) 2007, Kalopa Internet Solutions Limited.  All
  * rights reserved.
  *
@@ -33,10 +29,6 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * ABSTRACT
- *
- * $Log$
  */
 
 #include <stdio.h>

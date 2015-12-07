@@ -1,9 +1,5 @@
 %{
-#ident "$Id$"
-
 /*
- * $Id$
- *
  * Copyright (c) 2003, Kalopa Media Limited.  All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -32,57 +28,6 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * ABSTRACT
- *
- * $Log$
- * Revision 1.10  2006/07/31 08:56:22  dtynan
- * Added new keywords.
- *
- * Revision 1.9  2005/11/04 13:42:58  dtynan
- * Force the SQL output to look more like mysqldump.
- *
- * Revision 1.8  2004/06/30 12:21:01  dtynan
- * Still trying to avoid namespace collisions...
- *
- * Revision 1.7  2004/06/28 15:46:42  dtynan
- * Call the function name 'fname' rather than 'name' which collides too much.
- *
- * Revision 1.6  2004/06/25 14:57:23  dtynan
- * Fixed a bug in the C template where forloops weren't working properly.
- * Added a RELEASE file, first pass at a man-page, and the basic hooks
- * for dealing with th %function block.
- *
- * Revision 1.5  2004/05/18 11:18:48  dtynan
- * Deprecated the use of %proto and %code statements.  Also added new
- * keywords which will immediately emit the following block either to
- * the include file or to the code file respectively.
- *
- * Revision 1.4  2004/04/30 12:12:25  dtynan
- * Lots of changes for minor bug fixes, added functionality and the like.
- * Notably the following:
- *     o Added a 'db_findXXXfirst()' function for searching the entired
- * 	 table.
- *     o Added a 'db_runXXXquery()' function which will run an SQL
- * 	 statement (without parsing any arguments) and return the
- * 	 first match.
- *     o Fixed a bug where the include() m4 statement was being used
- * 	 more than once.
- *     o Put the 'EMIT' code at the bottom of the output file.
- *
- * Revision 1.3  2004/01/26 23:43:21  dtynan
- * Extensive changes to fix some M4 issues and some library issues.
- * Removed many of the functions which were used to parse data types
- * and made them inline instead.  Improved the M4 generator by adding
- * for loops.
- *
- * Revision 1.2  2003/11/17 13:15:20  dtynan
- * Various changes to fix errors in the back-end code.
- *
- * Revision 1.1  2003/10/14 13:00:28  dtynan
- * Major revision of the DBOW code to use M4 as a back-end instead of
- * hard-coding the output.
- *
  */
 #include <stdio.h>
 #include <stdlib.h>
