@@ -1,6 +1,6 @@
 dnl
 dnl Copyright (c) 2003, Kalopa Media Limited.
-dnl Copyright (c) 2015, Kalopa Research.
+dnl Copyright (c) 2015-22, Kalopa Robotics Limited.
 dnl
 dnl This is free software; you can redistribute it and/or modify it
 dnl under the terms of the GNU General Public License as published by
@@ -17,11 +17,11 @@ dnl along with this product; see the file COPYING.  If not, write to
 dnl the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139,
 dnl USA.
 dnl
-dnl THIS SOFTWARE IS PROVIDED BY KALOPA RESEARCH "AS IS" AND ANY
+dnl THIS SOFTWARE IS PROVIDED BY KALOPA ROBOTICS "AS IS" AND ANY
 dnl EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
 dnl THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
 dnl PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL KALOPA
-dnl RESEARCH BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+dnl ROBOTICS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 dnl EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
 dnl TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 dnl DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
