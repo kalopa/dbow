@@ -4,6 +4,7 @@
 *.obj
 *.elf
 y.tab.h
+parse.c
 
 # Precompiled Headers
 *.gch
